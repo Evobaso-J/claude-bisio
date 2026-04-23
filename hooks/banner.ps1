@@ -1,16 +1,28 @@
 # claude-bisio SessionStart hook (Windows).
-# Writes banner directly to the console host. Never touches stdout.
+# Picks a banner tier matching the terminal's dimensions.
+# Writes to the console host so stdout stays empty (zero model-context cost).
 
 $ErrorActionPreference = 'SilentlyContinue'
 
 try {
-    $bannerPath = Join-Path $PSScriptRoot 'banner.txt'
+    $cols = try { $Host.UI.RawUI.WindowSize.Width }  catch { 80 }
+    $rows = try { $Host.UI.RawUI.WindowSize.Height } catch { 24 }
+
+    $tier = switch ($true) {
+        (($rows -ge 55) -and ($cols -ge 90))  { 'lg'; break }
+        (($rows -ge 40) -and ($cols -ge 65))  { 'md'; break }
+        (($rows -ge 30) -and ($cols -ge 48))  { 'sm'; break }
+        default                                { 'xs' }
+    }
+
+    $bannerPath = Join-Path $PSScriptRoot "banner-$tier.txt"
+    if (-not (Test-Path $bannerPath)) {
+        $bannerPath = Join-Path $PSScriptRoot 'banner-xs.txt'
+    }
     if (-not (Test-Path $bannerPath)) { exit 0 }
 
     $banner = Get-Content -Raw -Path $bannerPath
 
-    # Write-Host bypasses the PowerShell success stream (stdout)
-    # and renders directly to the host — invisible to CC's hook capture.
     Write-Host ""
     Write-Host $banner
     Write-Host ""
