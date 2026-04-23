@@ -15,7 +15,7 @@ Works on macOS, Linux, and Windows. No shell setup, no aliases, no forgery of `c
 /plugin install evobaso@claude-bisio
 ```
 
-The banner will show on every new Claude Code session. Requires Node.js on `$PATH` (bundled with most Claude Code installs).
+After installing, **restart your Claude Code session** (run `/exit` and relaunch `claude`) to see the banner. It will greet you on every new session from then on.
 
 ### As an oh-my-zsh custom plugin (zsh only, legacy)
 
@@ -42,7 +42,7 @@ exec zsh
 
 ## How it works
 
-- **Plugin mode:** a `SessionStart` hook (`hooks/banner.js`) writes the banner straight to `/dev/tty` (Unix) or the Windows console. It never touches the hook's stdout, so Claude Code does **not** inject it as model context — **zero token cost**.
+- **Plugin mode:** a `SessionStart` hook (`hooks/banner.sh` on Unix, `hooks/banner.ps1` on Windows) writes the banner straight to `/dev/tty` or the Windows console host. It never touches the hook's stdout, so Claude Code does **not** inject it as model context — **zero token cost**.
 - **Zsh mode:** a shell function wraps `claude` and prints the banner before delegating to `command claude "$@"`.
 
 ## Disable
@@ -52,7 +52,7 @@ exec zsh
 
 ## Requirements
 
-- **Plugin mode:** Claude Code with plugin support, Node.js on `$PATH`, an interactive terminal.
+- **Plugin mode:** Claude Code with plugin support and an interactive terminal. Uses `sh` on macOS/Linux and `powershell` on Windows — both universally present.
 - **Zsh mode:** `zsh`, `claude` on `$PATH`, an interactive terminal (the banner auto-skips for pipes and non-TTYs).
 
 ## Roadmap

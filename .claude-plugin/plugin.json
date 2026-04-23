@@ -15,7 +15,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/banner.js\"",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/banner.sh\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File \"${CLAUDE_PLUGIN_ROOT}/hooks/banner.ps1\"",
             "timeout": 5
           }
         ]
