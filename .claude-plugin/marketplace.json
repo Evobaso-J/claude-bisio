@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "claude-bisio",
+  "description": "Claudio Bisio greets you at every Claude Code session start.",
+  "owner": {
+    "name": "Evobaso-J",
+    "url": "https://github.com/Evobaso-J"
+  },
+  "plugins": [
+    {
+      "name": "claude-bisio",
+      "description": "ASCII-art banner of Claudio Bisio on SessionStart. Pun on claude.",
+      "source": "./",
+      "category": "fun"
+    }
+  ]
+}
