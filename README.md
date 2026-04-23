@@ -12,7 +12,7 @@ Works on macOS, Linux, and Windows. No shell setup, no aliases, no forgery of `c
 
 ```sh
 /plugin marketplace add Evobaso-J/claude-bisio
-/plugin install claude-bisio@claude-bisio
+/plugin install evobaso@claude-bisio
 ```
 
 The banner will show on every new Claude Code session. Requires Node.js on `$PATH` (bundled with most Claude Code installs).
@@ -47,7 +47,7 @@ exec zsh
 
 ## Disable
 
-- **Plugin mode:** `/plugin uninstall claude-bisio@claude-bisio`, or `/plugin disable claude-bisio@claude-bisio` to keep it installed but silent.
+- **Plugin mode:** `/plugin uninstall evobaso@claude-bisio`, or `/plugin disable evobaso@claude-bisio` to keep it installed but silent.
 - **Zsh mode:** remove the plugin from `plugins=(...)`, or delete the `source` line from `~/.zshrc`. To bypass the wrapper for a single invocation: `command claude ...`.
 
 ## Requirements

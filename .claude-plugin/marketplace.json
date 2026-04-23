@@ -8,7 +8,7 @@
   },
   "plugins": [
     {
-      "name": "claude-bisio",
+      "name": "evobaso",
       "description": "ASCII-art banner of Claudio Bisio on SessionStart. Pun on claude.",
       "source": "./",
       "category": "fun"
