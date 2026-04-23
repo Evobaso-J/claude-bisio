@@ -2,7 +2,7 @@
 
 A zsh wrapper that prints a Claudio Bisio ASCII-art banner before launching the [Claude Code](https://claude.com/claude-code) CLI.
 
-Pun on "claude" — the actor Claudio Bisio greets you every time you run `claude`.
+Claudio Bisio greets you every time you run `claude`.
 
 ```
                                                                                 
