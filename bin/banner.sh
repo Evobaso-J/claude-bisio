@@ -12,6 +12,9 @@ fallback_txt="$assets_dir/bisio-fallback.txt"
 title_cc="$assets_dir/title-claude-code.txt"
 title_bisio="$assets_dir/title-bisio.txt"
 
+config_file="$repo_dir/bin/banner.config.sh"
+[ -f "$config_file" ] && . "$config_file"
+
 cache_root="${XDG_CACHE_HOME:-$HOME/.cache}/claude-bisio"
 state_root="${XDG_STATE_HOME:-$HOME/.local/state}/claude-bisio"
 hint_sentinel="$state_root/hint-shown"
@@ -99,7 +102,32 @@ else
   png_sha=nosha
 fi
 [ -n "$png_sha" ] || png_sha=nosha
-cache_dir="$cache_root/v1-$png_sha"
+
+# --- chafa args from config ---
+set --
+[ -n "${CHAFA_SYMBOLS:-}" ]           && set -- "$@" --symbols "$CHAFA_SYMBOLS"
+[ -n "${CHAFA_COLORS:-}" ]            && set -- "$@" --colors "$CHAFA_COLORS"
+[ -n "${CHAFA_FORMAT:-}" ]            && set -- "$@" --format "$CHAFA_FORMAT"
+[ "${CHAFA_FG_ONLY:-}" = "yes" ]      && set -- "$@" --fg-only
+[ -n "${CHAFA_DITHER:-}" ]            && set -- "$@" --dither "$CHAFA_DITHER"
+[ -n "${CHAFA_DITHER_GRAIN:-}" ]      && set -- "$@" --dither-grain "$CHAFA_DITHER_GRAIN"
+[ -n "${CHAFA_DITHER_INTENSITY:-}" ]  && set -- "$@" --dither-intensity "$CHAFA_DITHER_INTENSITY"
+[ "${CHAFA_INVERT:-}" = "yes" ]       && set -- "$@" --invert
+[ -n "${CHAFA_THRESHOLD:-}" ]         && set -- "$@" --threshold "$CHAFA_THRESHOLD"
+[ -n "${CHAFA_FONT_RATIO:-}" ]        && set -- "$@" --font-ratio "$CHAFA_FONT_RATIO"
+# CHAFA_EXTRA: deliberate word-split via eval — free-form flag string
+[ -n "${CHAFA_EXTRA:-}" ] && eval "set -- \"\$@\" $CHAFA_EXTRA"
+
+flags_str="$*"
+if command -v shasum >/dev/null 2>&1; then
+  flags_sha=$(printf '%s' "$flags_str" | shasum -a 256 | cut -c1-8)
+elif command -v sha256sum >/dev/null 2>&1; then
+  flags_sha=$(printf '%s' "$flags_str" | sha256sum | cut -c1-8)
+else
+  flags_sha=nosha
+fi
+[ -n "$flags_sha" ] || flags_sha=nosha
+cache_dir="$cache_root/v1-${png_sha}-${flags_sha}"
 
 # --- title block measurements ---
 title_cc_rows=$(awk 'END{print NR}' "$title_cc")
@@ -167,7 +195,7 @@ fi
 cache_file="$cache_dir/${pw}x${ph}.ans"
 if [ ! -f "$cache_file" ]; then
   mkdir -p "$cache_dir" 2>/dev/null || { show_fallback; exit 0; }
-  if ! chafa --size "${pw}x${ph}" --symbols block --colors 16 --format symbols --fg-only --probe=off --polite=on "$png" > "$cache_file" 2>/dev/null; then
+  if ! chafa --size "${pw}x${ph}" "$@" "$png" > "$cache_file" 2>/dev/null; then
     rm -f "$cache_file"
     show_fallback
     exit 0
