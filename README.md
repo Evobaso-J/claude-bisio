@@ -37,16 +37,7 @@ Or directly: `~/.claude-bisio/update.sh` (equivalently `git -C ~/.claude-bisio p
 
 ## Plugin manager install
 
-Install `chafa` first:
-
-```sh
-brew install chafa            # macOS
-sudo apt-get install chafa    # Debian/Ubuntu
-sudo dnf install chafa        # Fedora/RHEL
-sudo pacman -S chafa          # Arch
-```
-
-Then add one line to `~/.zshrc`:
+`chafa` is required - run [`install.sh`](install.sh) once to auto-install it, or see [Requirements](#requirements). Then add one line to `~/.zshrc`:
 
 ```sh
 # zinit
@@ -67,7 +58,7 @@ github = "Evobaso-J/claude-bisio"
 
 ### oh-my-zsh custom plugin
 
-Install `chafa` (see above), then:
+Ensure `chafa` is installed (see [Requirements](#requirements)), then:
 
 ```sh
 git clone https://github.com/Evobaso-J/claude-bisio \
@@ -105,6 +96,18 @@ Remove the plugin entry (zinit/antigen/zplug/sheldon/oh-my-zsh) or delete the `s
 `CLAUDE_BISIO_RESERVE` (default `4`) sets rows reserved at the bottom of the viewport for Claude's own welcome box + prompt, so the banner shrinks to fit. Increase if you still see overflow; decrease if there's excess blank space below the banner.
 
 `CLAUDE_BISIO_MAX_HEIGHT` (default `40`) caps portrait rows so the image doesn't fill the entire viewport on tall terminals. Independent of `CLAUDE_BISIO_RESERVE`: reserve protects the bottom, this caps the top.
+
+### Override from `~/.zshrc`
+
+Every variable above can be overridden by exporting it in `~/.zshrc` (before the plugin source line): see [`bin/banner.config.sh`](bin/banner.config.sh) for overridable defaults. For example, to disable colors and dithering:
+
+```sh
+export CHAFA_SYMBOLS=ascii
+export CHAFA_COLORS=full
+export CLAUDE_BISIO_MAX_HEIGHT=30
+```
+
+`export` is required because the renderer runs in a subprocess. An explicit empty string disables a flag even when the default would enable it (e.g. `export CHAFA_FG_ONLY=""` drops `--fg-only`). Cache auto-invalidates on any flag change.
 
 Layout picks itself based on terminal size:
 
