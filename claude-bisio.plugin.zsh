@@ -13,5 +13,13 @@ function claude_with_banner() {
   command claude "$@"
 }
 
+# Standalone banner — prints regardless of the Claude CLI.
+function bisio() {
+  local banner="$CLAUDE_BISIO_DIR/bin/banner.sh"
+  if [ -x "$banner" ]; then
+    CLAUDE_BISIO_DIR="$CLAUDE_BISIO_DIR" "$banner"
+  fi
+}
+
 alias claude='claude_with_banner'
 # --- end Claude CLI banner setup ---
