@@ -80,7 +80,7 @@ install_chafa() {
 # --- clone or update plugin ---
 install_plugin() {
   if [ -d "$TARGET_DIR/.git" ]; then
-    log "plugin already cloned at $TARGET_DIR - run 'git -C $TARGET_DIR pull' to update"
+    log "plugin already cloned at $TARGET_DIR - run '$TARGET_DIR/update.sh' to update"
     return 0
   fi
   if [ -e "$TARGET_DIR" ]; then
