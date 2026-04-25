@@ -92,6 +92,8 @@ Remove the plugin entry (zinit/antigen/zplug/sheldon/oh-my-zsh) or delete the `s
 
 `chafa` flags live in [`bin/banner.config.sh`](bin/banner.config.sh): symbol set, color depth, dithering, fg-only, etc. Edit, save, run `claude` - render cache auto-invalidates on flag change.
 
+`CLAUDE_BISIO_RESERVE` (default `14`) sets rows reserved at the bottom of the viewport for Claude's own welcome box + prompt, so the banner shrinks to fit. Increase if you still see overflow; decrease if there's excess blank space below the banner.
+
 Layout picks itself based on terminal size:
 
 - **side** - portrait left, titles right (wide terminals)
