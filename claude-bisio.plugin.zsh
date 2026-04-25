@@ -23,5 +23,15 @@ function bisio() {
   fi
 }
 
+# Speech-bubble next to a Bisio portrait. Forwards args (or stdin) as the message.
+function claudiosay() {
+  if [ -t 1 ]; then
+    local script="$CLAUDE_BISIO_DIR/bin/claudiosay.sh"
+    if [ -x "$script" ]; then
+      CLAUDE_BISIO_DIR="$CLAUDE_BISIO_DIR" "$script" "$@"
+    fi
+  fi
+}
+
 alias claude='claude_with_banner'
 # --- end Claude CLI banner setup ---
