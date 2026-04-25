@@ -8,18 +8,35 @@ Claudio Bisio greets you every time you run `claude`. The banner auto-fits the t
 
 ## Install
 
-### As an oh-my-zsh custom plugin
+### Plugin managers (one-liner)
+
+Pick your manager and add the line to `~/.zshrc`:
+
+```sh
+# zinit
+zinit light Evobaso-J/claude-bisio
+
+# antigen
+antigen bundle Evobaso-J/claude-bisio
+
+# zplug
+zplug "Evobaso-J/claude-bisio"
+
+# sheldon (~/.config/sheldon/plugins.toml)
+[plugins.claude-bisio]
+github = "Evobaso-J/claude-bisio"
+```
+
+Then `exec zsh`.
+
+### oh-my-zsh custom plugin
 
 ```sh
 git clone https://github.com/Evobaso-J/claude-bisio \
   "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/claude-bisio"
 ```
 
-Then add `claude-bisio` to the `plugins=(...)` line in your `~/.zshrc` and reload:
-
-```sh
-exec zsh
-```
+Add `claude-bisio` to `plugins=(...)` in `~/.zshrc`, then `exec zsh`.
 
 ### Manual
 
@@ -40,7 +57,7 @@ claude -p "refactor this function"
 
 ## Disable
 
-Remove the plugin from `plugins=(...)` (oh-my-zsh), or delete the `source` line from `~/.zshrc` (manual install). To bypass the wrapper for a single invocation: `command claude ...`.
+Remove the plugin entry (zinit/antigen/zplug/sheldon/oh-my-zsh) or delete the `source` line (manual install) from your config. To bypass the wrapper for a single invocation: `command claude ...`.
 
 ## Requirements
 
