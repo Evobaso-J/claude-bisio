@@ -22,4 +22,9 @@ CHAFA_EXTRA="--probe=off --polite=on"
 # Rows reserved at the bottom of the viewport for Claude's own welcome box
 # and prompt. Increase if your terminal still overflows; decrease if you see
 # excess blank space below the banner.
-CLAUDE_BISIO_RESERVE="34"
+CLAUDE_BISIO_RESERVE="4"
+
+# Hard cap on portrait height in rows. Stops the image from filling the whole
+# viewport on tall terminals. Independent of CLAUDE_BISIO_RESERVE: reserve
+# protects the bottom (welcome box), this caps the top (image growth).
+CLAUDE_BISIO_MAX_HEIGHT="40"

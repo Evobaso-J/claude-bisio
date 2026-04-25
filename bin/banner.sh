@@ -148,6 +148,11 @@ case "$reserve" in *[!0-9]*) reserve=14 ;; esac
 avail_rows=$(( rows - margin - reserve ))
 [ "$avail_rows" -lt 1 ] && avail_rows=1
 
+# Cap portrait rows so the image doesn't fill the whole viewport on tall terminals.
+max_ph=${CLAUDE_BISIO_MAX_HEIGHT:-22}
+case "$max_ph" in *[!0-9]*) max_ph=22 ;; esac
+[ "$max_ph" -lt 1 ] && max_ph=1
+
 layout=
 pw=0
 ph=0
@@ -163,6 +168,11 @@ if [ "$side_w" -ge 30 ] && [ "$avail_rows" -ge "$title_h" ]; then
   ph=$(( pw * 6 / 10 ))
   [ "$ph" -lt "$title_h" ] && ph=$title_h
   [ "$ph" -gt "$avail_rows" ] && ph=$avail_rows
+  if [ "$ph" -gt "$max_ph" ]; then
+    ph=$max_ph
+    new_pw=$(( ph * 10 / 6 ))
+    [ "$new_pw" -lt "$pw" ] && pw=$new_pw
+  fi
 fi
 
 # 2. stacked
@@ -176,6 +186,11 @@ if [ -z "$layout" ]; then
     pw=$stack_w
     ph=$(( pw * 6 / 10 ))
     [ "$ph" -gt "$stack_rows_avail" ] && ph=$stack_rows_avail
+    if [ "$ph" -gt "$max_ph" ]; then
+      ph=$max_ph
+      new_pw=$(( ph * 10 / 6 ))
+      [ "$new_pw" -lt "$pw" ] && pw=$new_pw
+    fi
   fi
 fi
 
@@ -189,6 +204,11 @@ if [ -z "$layout" ]; then
     pw=$solo_w
     ph=$(( pw * 6 / 10 ))
     [ "$ph" -gt "$avail_rows" ] && ph=$avail_rows
+    if [ "$ph" -gt "$max_ph" ]; then
+      ph=$max_ph
+      new_pw=$(( ph * 10 / 6 ))
+      [ "$new_pw" -lt "$pw" ] && pw=$new_pw
+    fi
   fi
 fi
 
