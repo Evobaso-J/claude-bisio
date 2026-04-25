@@ -25,6 +25,16 @@ Then `exec zsh`.
 
 Supported: macOS (Homebrew), Linux (`apt-get` / `dnf` / `pacman` / `zypper` / `apk`). Windows: use WSL.
 
+### Update
+
+Fast-forward pull on the existing clone:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Evobaso-J/claude-bisio/main/update.sh | sh
+```
+
+Or directly: `~/.claude-bisio/update.sh` (equivalently `git -C ~/.claude-bisio pull`).
+
 ## Plugin manager install
 
 Install `chafa` first:
