@@ -4,7 +4,7 @@ A zsh wrapper that prints a Claudio Bisio banner before launching the [Claude Co
 
 Claudio Bisio greets you every time you run `claude`. The banner auto-fits the terminal viewport: portrait rendered via [`chafa`](https://hpjansson.org/chafa/), with composed `CLAUDE` / `BISIO` figlet titles. Falls back to a static ASCII portrait if `chafa` isn't installed.
 
-![claude-bisio banner preview](assets/bisio-preview.png)
+<img src="assets/bisio-preview.gif" alt="claude-bisio banner preview" width="800">
 
 ## Quick install
 
