@@ -22,4 +22,4 @@ CHAFA_EXTRA="--probe=off --polite=on"
 # Rows reserved at the bottom of the viewport for Claude's own welcome box
 # and prompt. Increase if your terminal still overflows; decrease if you see
 # excess blank space below the banner.
-CLAUDE_BISIO_RESERVE="14"
+CLAUDE_BISIO_RESERVE="8"
