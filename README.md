@@ -78,6 +78,18 @@ claude -p "refactor this function"
 
 Standalone preview: `bisio`.
 
+### claudiosay
+
+`cowsay`, but it's Claudio Bisio. Pass the message as args or pipe it on stdin:
+
+```sh
+claudiosay 'ciao mondo'
+echo 'pipe me' | claudiosay
+git log -1 --format=%s | claudiosay
+```
+
+Picks a portrait from the same pool as `bisio` (same weights, same random) and renders a side-by-side speech bubble pointing at him.
+
 ## Disable
 
 Remove the plugin entry (zinit/antigen/zplug/sheldon/oh-my-zsh) or delete the `source` line (manual install) from your config. Bypass for one invocation: `command claude ...`.
