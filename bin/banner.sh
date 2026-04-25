@@ -29,7 +29,7 @@ case "$rows$cols" in *[!0-9]*) exit 0 ;; esac
 
 # --- helpers ---
 detect_install_cmd() {
-  # macOS has its own /usr/bin/apt (Java tool, not the Debian one) — anchor on uname.
+  # macOS has its own /usr/bin/apt (Java tool, not the Debian one) - anchor on uname.
   os=$(uname -s 2>/dev/null)
   case "$os" in
     Darwin)
@@ -75,7 +75,7 @@ print_hint_once() {
   [ -f "$hint_sentinel" ] && return 0
   mkdir -p "$state_root" 2>/dev/null || return 0
   cmd=$(detect_install_cmd)
-  printf '[claude-bisio] chafa not found — install for viewport-fit: %s\n\n' "$cmd"
+  printf '[claude-bisio] chafa not found - install for viewport-fit: %s\n\n' "$cmd"
   : > "$hint_sentinel" 2>/dev/null || true
 }
 
@@ -115,7 +115,7 @@ set --
 [ "${CHAFA_INVERT:-}" = "yes" ]       && set -- "$@" --invert
 [ -n "${CHAFA_THRESHOLD:-}" ]         && set -- "$@" --threshold "$CHAFA_THRESHOLD"
 [ -n "${CHAFA_FONT_RATIO:-}" ]        && set -- "$@" --font-ratio "$CHAFA_FONT_RATIO"
-# CHAFA_EXTRA: deliberate word-split via eval — free-form flag string
+# CHAFA_EXTRA: deliberate word-split via eval - free-form flag string
 [ -n "${CHAFA_EXTRA:-}" ] && eval "set -- \"\$@\" $CHAFA_EXTRA"
 
 flags_str="$*"
