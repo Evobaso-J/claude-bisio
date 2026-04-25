@@ -4,7 +4,7 @@
 # Empty string = flag omitted. Boolean flags: "yes" to enable, "" to skip.
 
 CHAFA_SYMBOLS="block"            # block | sextant | ascii | half | vhalf | quad | braille | all | ...
-CHAFA_COLORS="16"                # 2 | 8 | 16 | 240 | 256 | full | none
+CHAFA_COLORS="256"                # 2 | 8 | 16 | 240 | 256 | full | none
 CHAFA_FORMAT="symbols"           # symbols | sixels | kitty | iterm | ...
 CHAFA_FG_ONLY="yes"              # "yes" => --fg-only
 
