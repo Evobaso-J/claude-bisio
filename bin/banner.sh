@@ -142,7 +142,10 @@ title_h=$(( title_cc_rows + 2 + title_bisio_rows ))
 # Cell aspect: portrait W cols → H ≈ W * 0.6 rows (PNG 456×547, cell 1:2).
 margin=2
 gutter=4
-avail_rows=$(( rows - margin ))
+# Reserve rows for Claude's own welcome box + prompt that prints after the banner.
+reserve=${CLAUDE_BISIO_RESERVE:-14}
+case "$reserve" in *[!0-9]*) reserve=14 ;; esac
+avail_rows=$(( rows - margin - reserve ))
 [ "$avail_rows" -lt 1 ] && avail_rows=1
 
 layout=
