@@ -97,6 +97,8 @@ Remove the plugin entry (zinit/antigen/zplug/sheldon/oh-my-zsh) or delete the `s
 
 `CLAUDE_BISIO_MAX_HEIGHT` (default `40`) caps portrait rows so the image doesn't fill the entire viewport on tall terminals. Independent of `CLAUDE_BISIO_RESERVE`: reserve protects the bottom, this caps the top.
 
+The portrait shown each run is drawn at random. Each variant has its own render cache, so first hit is the only slow one.
+
 ### Override from `~/.zshrc`
 
 Every variable above can be overridden by exporting it in `~/.zshrc` (before the plugin source line): see [`bin/banner.config.sh`](bin/banner.config.sh) for overridable defaults. For example, to disable colors and dithering:
@@ -122,5 +124,3 @@ Layout picks itself based on terminal size:
 ## License
 
 MIT - see [LICENSE](LICENSE).
-
-Source portrait: `assets/bisio.png`.

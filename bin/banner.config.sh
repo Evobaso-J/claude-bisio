@@ -33,3 +33,13 @@
 # viewport on tall terminals. Independent of CLAUDE_BISIO_RESERVE: reserve
 # protects the bottom (welcome box), this caps the top (image growth).
 : "${CLAUDE_BISIO_MAX_HEIGHT=40}"
+
+# Pull rates for each portrait in assets/bisio/. Plain assignment: these are
+# repo-level constants, not env-overridable. Edit here to retune. Numbers are
+# relative weights (any positive integers); they don't need to sum to 100 but 
+# are easier to reason about if they do.
+# Files in assets/bisio/ that aren't listed below are never picked.
+BISIO_WEIGHT_MAIN=45
+BISIO_WEIGHT_ALLUCINATO=30
+BISIO_WEIGHT_RAPPUT=20
+BISIO_WEIGHT_PATEMA=5
