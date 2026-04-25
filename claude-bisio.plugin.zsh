@@ -13,7 +13,7 @@ function claude_with_banner() {
   command claude "$@"
 }
 
-# Standalone banner — same gating as claude_with_banner, minus launching the CLI.
+# Standalone banner - same gating as claude_with_banner, minus launching the CLI.
 function bisio() {
   if [ $# -eq 0 ] && [ -t 0 ] && [ -t 1 ]; then
     local banner="$CLAUDE_BISIO_DIR/bin/banner.sh"
