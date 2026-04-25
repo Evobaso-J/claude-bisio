@@ -8,7 +8,7 @@ Claudio Bisio greets you every time you run `claude`. The banner auto-fits the t
 
 ## Quick install
 
-One paste — installs `chafa` (via your package manager), clones the plugin to `~/.claude-bisio`, and wires it into `~/.zshrc`:
+One paste - installs `chafa` (via your package manager), clones the plugin to `~/.claude-bisio`, and wires it into `~/.zshrc`:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Evobaso-J/claude-bisio/main/install.sh | sh
@@ -86,17 +86,17 @@ Remove the plugin entry (zinit/antigen/zplug/sheldon/oh-my-zsh) or delete the `s
 - `zsh`
 - [`claude`](https://claude.com/claude-code) on `$PATH`
 - Interactive terminal (banner auto-skips for pipes and non-TTYs)
-- [`chafa`](https://hpjansson.org/chafa/) recommended — installed automatically by `install.sh`. Without it, a static ASCII fallback prints and a one-time install hint is shown.
+- [`chafa`](https://hpjansson.org/chafa/) recommended - installed automatically by `install.sh`. Without it, a static ASCII fallback prints and a one-time install hint is shown.
 
 ## Configuration
 
-`chafa` flags live in [`bin/banner.config.sh`](bin/banner.config.sh): symbol set, color depth, dithering, fg-only, etc. Edit, save, run `claude` — render cache auto-invalidates on flag change.
+`chafa` flags live in [`bin/banner.config.sh`](bin/banner.config.sh): symbol set, color depth, dithering, fg-only, etc. Edit, save, run `claude` - render cache auto-invalidates on flag change.
 
 Layout picks itself based on terminal size:
 
-- **side** — portrait left, titles right (wide terminals)
-- **stacked** — portrait above, titles centered below (tall, narrow)
-- **solo** — portrait only (very small)
+- **side** - portrait left, titles right (wide terminals)
+- **stacked** - portrait above, titles centered below (tall, narrow)
+- **solo** - portrait only (very small)
 
 ## Roadmap
 
@@ -104,6 +104,6 @@ Layout picks itself based on terminal size:
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT - see [LICENSE](LICENSE).
 
 Source portrait: `assets/bisio.png`.

@@ -34,7 +34,7 @@ fi
 # --- install chafa ---
 install_chafa() {
   if command -v chafa >/dev/null 2>&1; then
-    log "chafa already installed — skipping"
+    log "chafa already installed - skipping"
     return 0
   fi
 
@@ -42,7 +42,7 @@ install_chafa() {
   case "$os" in
     Darwin)
       if ! command -v brew >/dev/null 2>&1; then
-        die "Homebrew not found. Install it first: https://brew.sh — then re-run this script."
+        die "Homebrew not found. Install it first: https://brew.sh - then re-run this script."
       fi
       log "installing chafa via Homebrew"
       brew install chafa
@@ -80,7 +80,7 @@ install_chafa() {
 # --- clone or update plugin ---
 install_plugin() {
   if [ -d "$TARGET_DIR/.git" ]; then
-    log "plugin already cloned at $TARGET_DIR — run 'git -C $TARGET_DIR pull' to update"
+    log "plugin already cloned at $TARGET_DIR - run 'git -C $TARGET_DIR pull' to update"
     return 0
   fi
   if [ -e "$TARGET_DIR" ]; then
@@ -98,7 +98,7 @@ wire_zshrc() {
     : > "$ZSHRC"
   fi
   if grep -Fqs "claude-bisio.plugin.zsh" "$ZSHRC"; then
-    log "source line already present in $ZSHRC — skipping"
+    log "source line already present in $ZSHRC - skipping"
     return 0
   fi
   log "adding source line to $ZSHRC"
