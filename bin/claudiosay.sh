@@ -116,6 +116,11 @@ printf '%s' "$msg" | fold -s -w "$bw" > "$tmp_raw"
 body_lines=$(awk 'END{print NR}' "$tmp_raw")
 [ "$body_lines" -ge 1 ] || body_lines=1
 
+# Shrink bubble to widest wrapped line — cowsay-style fit, no trailing whitespace.
+max_w=$(awk '{ if (length>m) m=length } END { print m+0 }' "$tmp_raw")
+[ "$max_w" -ge 1 ] || max_w=1
+[ "$max_w" -lt "$bw" ] && bw=$max_w
+
 {
   # top border:  .---<bw+2>---.
   printf '.'
