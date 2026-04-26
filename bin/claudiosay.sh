@@ -29,28 +29,56 @@ else
 fi
 [ -n "$msg" ] || { printf 'claudiosay: empty message\n' >&2; exit 1; }
 
-# --- terminal width (fallback to 80) ---
+# --- terminal size (fallback 80x24) ---
 size=$( (stty size < /dev/tty) 2>/dev/null )
 cols=80
+rows=24
 if [ -n "$size" ]; then
+  r=${size% *}
   c=${size#* }
+  case "$r" in *[!0-9]*) ;; *) rows=$r ;; esac
   case "$c" in *[!0-9]*) ;; *) cols=$c ;; esac
 fi
 [ "$cols" -lt 30 ] && cols=30
+[ "$rows" -lt 8 ]  && rows=8
 
 # --- sizing ---
-# Portrait: small fixed-ish band — between 12 and 24 cols, ~1/3 of viewport.
-pw=$(( cols / 3 ))
-[ "$pw" -gt 24 ] && pw=24
-[ "$pw" -lt 12 ] && pw=12
-ph=$(( pw * 6 / 10 ))
-[ "$ph" -lt 6 ] && ph=6
+# Mirror banner.sh's viewport model: subtract margin + reserve for Claude's
+# welcome box, cap height via CLAUDE_BISIO_MAX_HEIGHT, scale via 0.6 cell aspect.
+margin=2
+reserve=${CLAUDE_BISIO_RESERVE:-4}
+case "$reserve" in *[!0-9]*) reserve=4 ;; esac
+avail_rows=$(( rows - margin - reserve ))
+[ "$avail_rows" -lt 6 ] && avail_rows=6
+
+max_ph=${CLAUDE_BISIO_MAX_HEIGHT:-40}
+case "$max_ph" in *[!0-9]*) max_ph=40 ;; esac
+[ "$max_ph" -lt 6 ] && max_ph=6
 
 gutter=2
-arrow_w=3   # "<- " or "   "
-# Bubble inner-text width = remaining cols after portrait + gutter + arrow + "| " + " |".
-bw=$(( cols - pw - gutter - arrow_w - 4 ))
-[ "$bw" -gt 56 ] && bw=56
+arrow_w=3      # "<- " or "   "
+borders_w=4    # "| " + " |"
+min_bw=20      # smallest readable bubble before we squeeze the portrait
+
+# Portrait width budget: limited by remaining cols after bubble AND by avail rows via aspect.
+pw_by_cols=$(( cols - min_bw - gutter - arrow_w - borders_w ))
+pw_by_rows=$(( avail_rows * 10 / 6 ))
+pw=$pw_by_cols
+[ "$pw_by_rows" -lt "$pw" ] && pw=$pw_by_rows
+
+# Apply max-height cap (via aspect: ph = pw * 6/10, so pw <= max_ph * 10/6).
+max_pw=$(( max_ph * 10 / 6 ))
+[ "$pw" -gt "$max_pw" ] && pw=$max_pw
+[ "$pw" -lt 12 ] && pw=12
+
+ph=$(( pw * 6 / 10 ))
+[ "$ph" -gt "$max_ph" ]    && ph=$max_ph
+[ "$ph" -gt "$avail_rows" ] && ph=$avail_rows
+[ "$ph" -lt 6 ] && ph=6
+
+# Bubble inner-text width: take whatever cols remain after the portrait.
+bw=$(( cols - pw - gutter - arrow_w - borders_w ))
+[ "$bw" -gt 80 ] && bw=80
 [ "$bw" -lt 8 ]  && bw=8
 
 # --- temp files ---
