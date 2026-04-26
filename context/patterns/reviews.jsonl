@@ -1,0 +1,1 @@
+{"_schema": "rv", "_version": "1.0", "_description": "Review checks and migration notes: prod near-misses, deprecated patterns, API contract migrations. Append only; tag `migration` entries with `old_pattern` and `new_pattern`.", "_fields": ["id", "check", "category", "type", "severity", "tags", "old_pattern", "new_pattern", "created", "status"]}

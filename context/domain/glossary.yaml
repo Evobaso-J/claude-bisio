@@ -1,0 +1,50 @@
+# Extended domain terminology.
+# In-world concepts and their mapping to code-level identifiers.
+# When a term gets renamed in code, update both the entity name (key) and the source pointer.
+
+entities:
+  variant:
+    definition: "A Claudio Bisio portrait. Canonical when the file is named `NN-slug.png` and a positive `BISIO_WEIGHT_<UPPER_SLUG>` is defined."
+    relationship: "Members of Bisiodex. Subject of weighted-random pick on every bare `claude` launch."
+    source: "assets/bisio/, bin/banner.config.sh"
+
+  bisiodex:
+    definition: "The user's collection state — which canonical variants have been seen at least once, plus per-variant counts and streak metadata."
+    relationship: "Persisted as KV pairs in counts.txt; surfaced to the banner via BISIO_DEX_* environment variables."
+    source: "bin/_counter.sh, ${XDG_STATE_HOME}/claude-bisio/counts.txt"
+
+  hall_of_fame:
+    definition: "Self-contained HTML artifact rendered on the launch that completes the Bisiodex (every canonical variant has count > 0)."
+    relationship: "One-time edge trigger; re-armed when a new canonical variant is added after prior completion."
+    source: "bin/_counter.sh:_bisio_render_html, ${XDG_STATE_HOME}/claude-bisio/hall-of-fame.html"
+
+  pull:
+    definition: "A banner-rendered launch where a variant was shown to the user."
+    relationship: "Increments the variant's count and updates streak metadata. Recorded by bisio_record_pull."
+    source: "bin/_counter.sh:bisio_record_pull"
+
+  miss:
+    definition: "A banner invocation that bailed before rendering (terminal too small, no /dev/tty, no fitting layout)."
+    relationship: "Counted in the __missed_banner metadata key; surfaced in the Hall of Fame stats."
+    source: "bin/_counter.sh:bisio_record_miss, bin/banner.sh:_bisio_miss_and_exit"
+
+concepts:
+  canonical_set:
+    definition: "Intersection of (NN-prefixed PNGs in assets/bisio/) and (slugs with positive BISIO_WEIGHT_<UPPER>)."
+    notes: "Recomputed on every bisio_record_pull — orphans (zeroed weight or removed PNG) are pruned from counts.txt on next write. See bin/_counter.sh:197-211."
+
+  completion_edge:
+    definition: "The transition `pre_complete=0 -> post_complete=1` within a single bisio_record_pull invocation."
+    notes: "Triggers Hall of Fame render. Idempotent: subsequent pulls do not re-fire unless a new canonical variant has been added that is now uncaught."
+
+  streak:
+    definition: "Consecutive runs of `main` (__main_streak_*) or non-`main` (__nonmain_streak_*) pulls. Reset to 0 on the opposite type, current/longest tracked separately."
+    notes: "Streak slug is hardcoded as `main` in bin/_counter.sh:_BISIO_STREAK_SLUG. Renaming main.png requires updating this constant."
+
+  layout_mode:
+    definition: "Banner composition layout: `side` (portrait left, titles right), `stacked` (portrait above, titles below), or `solo` (portrait only)."
+    notes: "Auto-picked from terminal size; controlled indirectly by CLAUDE_BISIO_RESERVE and CLAUDE_BISIO_MAX_HEIGHT. See bin/banner.sh:262-318."
+
+  opt_out:
+    definition: "Setting CLAUDE_BISIO_NO_COUNTER=1 short-circuits the counter recorder."
+    notes: "Banner still renders. claudiosay falls back to weighted-random (the main-lock until-completion gate is skipped for opted-out users)."

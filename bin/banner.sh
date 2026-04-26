@@ -51,7 +51,7 @@ _bisio_miss_and_exit() {
   exit 0
 }
 
-# --- terminal size (subshell swallows /dev/tty open errors per LEARNINGS §7) ---
+# --- terminal size (subshell swallows /dev/tty open errors; see gotcha g001) ---
 size=$( (stty size < /dev/tty) 2>/dev/null )
 [ -n "$size" ] || _bisio_miss_and_exit
 rows=${size% *}
