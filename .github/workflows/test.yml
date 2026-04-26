@@ -1,0 +1,26 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install bats and shellcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bats shellcheck
+
+      - name: shellcheck (errors only - existing files have known style warnings)
+        run: shellcheck --severity=error bin/*.sh
+
+      - name: shellcheck strict on counter.sh
+        run: shellcheck bin/_counter.sh
+
+      - name: bats
+        run: bats tests/

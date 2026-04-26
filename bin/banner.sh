@@ -19,6 +19,10 @@ picker="$repo_dir/bin/_pick_portrait.sh"
 # shellcheck source=bin/_pick_portrait.sh
 [ -f "$picker" ] && . "$picker"
 
+counter="$repo_dir/bin/_counter.sh"
+# shellcheck source=bin/_counter.sh
+[ -f "$counter" ] && . "$counter"
+
 # --- pick a portrait from $bisio_dir/*.png ---
 png=""
 if command -v bisio_pick_portrait >/dev/null 2>&1; then
@@ -28,14 +32,28 @@ fi
 cache_root="${XDG_CACHE_HOME:-$HOME/.cache}/claude-bisio"
 state_root="${XDG_STATE_HOME:-$HOME/.local/state}/claude-bisio"
 hint_sentinel="$state_root/hint-shown"
+first_sentinel="$state_root/first-shown"
+
+# First-ever banner show: force main.png so the user meets the canonical Bisio
+# before the weighted-random roulette kicks in on subsequent launches.
+if [ ! -f "$first_sentinel" ] && [ -f "$bisio_dir/main.png" ]; then
+  png="$bisio_dir/main.png"
+fi
+
+# Record a missed banner call when we bail before rendering due to terminal
+# constraints. Counter is sourced above; guard for the opt-out path.
+_bisio_miss_and_exit() {
+  command -v bisio_record_miss >/dev/null 2>&1 && bisio_record_miss
+  exit 0
+}
 
 # --- terminal size (subshell swallows /dev/tty open errors per LEARNINGS §7) ---
 size=$( (stty size < /dev/tty) 2>/dev/null )
-[ -n "$size" ] || exit 0
+[ -n "$size" ] || _bisio_miss_and_exit
 rows=${size% *}
 cols=${size#* }
-case "$rows$cols" in *[!0-9]*) exit 0 ;; esac
-[ "$cols" -ge 30 ] && [ "$rows" -ge 8 ] || exit 0
+case "$rows$cols" in *[!0-9]*) _bisio_miss_and_exit ;; esac
+[ "$cols" -ge 30 ] && [ "$rows" -ge 8 ] || _bisio_miss_and_exit
 
 # --- helpers ---
 detect_install_cmd() {
@@ -92,6 +110,69 @@ print_hint_once() {
 show_fallback() {
   [ -f "$fallback_txt" ] && cat "$fallback_txt"
   printf '\n'
+}
+
+# Visual width of the Bisiodex body string (no ANSI).
+# Layout: optional "New Bisio discovered: <slug>!   " (26 + slug) + bar (10) + "  " (2) + "C/T".
+# Counter is always rightmost.
+bisio_dex_body_width() {
+  _bdw_caught=$1
+  _bdw_total=$2
+  _bdw_new=$3
+  _bdw_latest=$4
+  _bdw_count="${_bdw_caught}/${_bdw_total}"
+  _bdw=$(( 12 + ${#_bdw_count} ))
+  [ "$_bdw_new" = "1" ] && _bdw=$(( _bdw + 26 + ${#_bdw_latest} ))
+  printf '%s\n' "$_bdw"
+}
+
+# Print one Bisiodex status line (left-padded by $5) with trailing newline.
+# Bar is 10 segments. Color from CLAUDE_BISIO_DEX_COLOR or _NEW_COLOR.
+bisio_render_dex_line() {
+  _drl_caught=$1
+  _drl_total=$2
+  _drl_new=$3
+  _drl_latest=$4
+  _drl_pad=${5:-0}
+
+  _drl_filled=${CLAUDE_BISIO_DEX_FILLED:-▰}
+  _drl_empty=${CLAUDE_BISIO_DEX_EMPTY:-▱}
+  _drl_color=${CLAUDE_BISIO_DEX_COLOR:-1;96}
+  _drl_newcolor=${CLAUDE_BISIO_DEX_NEW_COLOR:-1;93}
+
+  if [ "$_drl_total" -le 0 ] 2>/dev/null; then
+    _drl_segs=0
+  else
+    _drl_segs=$(( (_drl_caught * 10 + _drl_total / 2) / _drl_total ))
+    [ "$_drl_segs" -gt 10 ] && _drl_segs=10
+    [ "$_drl_segs" -lt 0 ] && _drl_segs=0
+    # Show ≥1 filled if anything caught; never full unless actually full.
+    [ "$_drl_caught" -gt 0 ] && [ "$_drl_segs" -eq 0 ] && _drl_segs=1
+    [ "$_drl_caught" -lt "$_drl_total" ] && [ "$_drl_segs" -ge 10 ] && _drl_segs=9
+  fi
+
+  _drl_bar=""
+  _drl_i=0
+  while [ "$_drl_i" -lt "$_drl_segs" ]; do
+    _drl_bar="${_drl_bar}${_drl_filled}"
+    _drl_i=$(( _drl_i + 1 ))
+  done
+  while [ "$_drl_i" -lt 10 ]; do
+    _drl_bar="${_drl_bar}${_drl_empty}"
+    _drl_i=$(( _drl_i + 1 ))
+  done
+
+  if [ "$_drl_new" = "1" ]; then
+    _drl_active=$_drl_newcolor
+    _drl_prefix=$(printf 'New Bisio discovered: %s!   ' "$_drl_latest")
+  else
+    _drl_active=$_drl_color
+    _drl_prefix=""
+  fi
+
+  printf '%*s\033[%sm%s%s  %d/%d\033[0m\n' \
+    "$_drl_pad" '' "$_drl_active" \
+    "$_drl_prefix" "$_drl_bar" "$_drl_caught" "$_drl_total"
 }
 
 # --- chafa missing path ---
@@ -222,7 +303,7 @@ if [ -z "$layout" ]; then
   fi
 fi
 
-[ -n "$layout" ] || exit 0
+[ -n "$layout" ] || _bisio_miss_and_exit
 
 # --- render or cache hit ---
 cache_file="$cache_dir/${pw}x${ph}.ans"
@@ -236,54 +317,66 @@ if [ ! -f "$cache_file" ]; then
 fi
 
 # --- compose & print ---
+# Blank line between the prompt/command and the banner.
+printf '\n'
+rendered=0
 case "$layout" in
   solo)
     cat "$cache_file"
-    printf '\n'
+    bisio_back=2
+    rendered=1
     ;;
   stacked)
     cat "$cache_file"
     printf '\n'
+    title_color=${CLAUDE_BISIO_TITLE_COLOR:-1;38;2;217;119;87}
     # Center title under portrait of width pw.
     pad=$(( (pw - title_cc_w) / 2 ))
     [ "$pad" -lt 0 ] && pad=0
-    awk -v p="$pad" 'BEGIN{ for(i=0;i<p;i++) s=s" " } { print s $0 }' "$title_cc"
+    awk -v p="$pad" -v c="$title_color" \
+      'BEGIN{ for(i=0;i<p;i++) s=s" " } { printf "%s\033[%sm%s\033[0m\n", s, c, $0 }' \
+      "$title_cc"
     printf '\n'
     pad_b=$(( (pw - title_bisio_w) / 2 ))
     [ "$pad_b" -lt 0 ] && pad_b=0
-    awk -v p="$pad_b" 'BEGIN{ for(i=0;i<p;i++) s=s" " } { print s $0 }' "$title_bisio"
-    printf '\n'
+    awk -v p="$pad_b" -v c="$title_color" \
+      'BEGIN{ for(i=0;i<p;i++) s=s" " } { printf "%s\033[%sm%s\033[0m\n", s, c, $0 }' \
+      "$title_bisio"
+    bisio_back=1
+    rendered=1
     ;;
   side)
     titles_tmp=$(mktemp 2>/dev/null) || titles_tmp="${TMPDIR:-/tmp}/claude-bisio-titles.$$"
+    # Use actual cache_file row count: chafa can emit fewer rows than requested
+    # for some aspect ratios. v_offset based on requested ph would push titles
+    # past portrait bottom, where they'd render at column 0 (line="" branch).
+    actual_ph=$(awk 'END{print NR}' "$cache_file")
+    v_offset=$(( (actual_ph - title_h) / 2 ))
+    [ "$v_offset" -lt 0 ] && v_offset=0
     {
+      _i=0
+      while [ "$_i" -lt "$v_offset" ]; do printf '\n'; _i=$(( _i + 1 )); done
       cat "$title_cc"
       printf '\n\n'
       cat "$title_bisio"
     } > "$titles_tmp"
 
-    portrait_lines=$(awk 'END{print NR}' "$cache_file")
-    title_lines=$(awk 'END{print NR}' "$titles_tmp")
-    diff=$(( portrait_lines - title_lines ))
-
-    # Vertically center title block against portrait by padding top.
-    if [ "$diff" -gt 0 ]; then
-      pad_top=$(( diff / 2 ))
-      padded=$(mktemp 2>/dev/null) || padded="${TMPDIR:-/tmp}/claude-bisio-padded.$$"
-      i=0
-      : > "$padded"
-      while [ "$i" -lt "$pad_top" ]; do printf '\n' >> "$padded"; i=$((i+1)); done
-      cat "$titles_tmp" >> "$padded"
-      mv "$padded" "$titles_tmp"
-    fi
-
-    awk -v gutter="$gutter" '
+    title_color=${CLAUDE_BISIO_TITLE_COLOR:-1;38;2;217;119;87}
+    # Vertically center titles against portrait via leading blank rows in
+    # titles_tmp. Image taller than titles is fine — the awk paste below
+    # leaves the right column blank for trailing rows. Title content is
+    # wrapped in $c…ESC[0m on non-empty rows; blank rows stay uncolored.
+    awk -v gutter="$gutter" -v c="$title_color" '
       NR==FNR { p[FNR]=$0; np=FNR; next }
       {
         line = (FNR <= np) ? p[FNR] : ""
         sep = ""
         for (i=0; i<gutter; i++) sep = sep " "
-        printf "%s\033[0m%s%s\n", line, sep, $0
+        if ($0 != "") {
+          printf "%s\033[0m%s\033[%sm%s\033[0m\n", line, sep, c, $0
+        } else {
+          printf "%s\033[0m%s\n", line, sep
+        }
       }
       END {
         if (np > FNR) {
@@ -293,8 +386,64 @@ case "$layout" in
     ' "$cache_file" "$titles_tmp"
 
     rm -f "$titles_tmp"
-    printf '\n'
+    bisio_back=1
+    rendered=1
     ;;
 esac
+
+# Record the pull only when something was actually shown.
+if [ "$rendered" = "1" ] && command -v bisio_record_pull >/dev/null 2>&1; then
+  pulled_slug=${png##*/}
+  pulled_slug=${pulled_slug%.png}
+  bisio_record_pull "$pulled_slug" "$rows" "$cols" "${bisio_back:-1}"
+fi
+
+# Bisiodex status line. Renders only when the counter populated dex vars
+# (skipped on opt-out and on no-render fallback paths).
+if [ "$rendered" = "1" ] && [ -n "${BISIO_DEX_TOTAL:-}" ]; then
+  dex_w=$(bisio_dex_body_width \
+    "${BISIO_DEX_CAUGHT:-0}" "${BISIO_DEX_TOTAL:-0}" \
+    "${BISIO_DEX_NEW:-0}" "${BISIO_DEX_LATEST:-}")
+  case "$layout" in
+    solo)
+      # No title block — center under image.
+      dex_pad=$(( (pw - dex_w) / 2 ))
+      ;;
+    stacked)
+      # Right-align the counter to the right edge of the widest title.
+      # Titles are centered under image of width pw, so the widest title's
+      # right edge sits at (pw + title_w)/2.
+      dex_pad=$(( (pw + title_w) / 2 - dex_w ))
+      ;;
+    side)
+      # Right-align the counter to the right edge of the widest title in
+      # the right column. Right column starts at pw+gutter, widest title
+      # ends at pw + gutter + title_w.
+      dex_pad=$(( pw + gutter + title_w - dex_w ))
+      ;;
+    *)
+      dex_pad=0
+      ;;
+  esac
+  [ "$dex_pad" -lt 0 ] && dex_pad=0
+  bisio_render_dex_line \
+    "${BISIO_DEX_CAUGHT:-0}" "${BISIO_DEX_TOTAL:-0}" \
+    "${BISIO_DEX_NEW:-0}" "${BISIO_DEX_LATEST:-}" \
+    "$dex_pad"
+fi
+
+# Hall of Fame celebration. Fires only on the launch where the counter just
+# crossed the completion edge (BISIO_DEX_JUST_COMPLETED=1). No-op otherwise.
+# Stays AFTER the dex bar so the user sees it fill 4/4 first.
+if [ "$rendered" = "1" ] && command -v bisio_announce_completion >/dev/null 2>&1; then
+  bisio_announce_completion
+fi
+
+# Trailing blank line before the welcome box / prompt.
+[ "$rendered" = "1" ] && printf '\n'
+
+if [ "$rendered" = "1" ] && [ ! -f "$first_sentinel" ]; then
+  mkdir -p "$state_root" 2>/dev/null && : > "$first_sentinel" 2>/dev/null || true
+fi
 
 exit 0
