@@ -130,37 +130,24 @@ body_lines=$(awk 'END{print NR}' "$tmp_raw")
 } > "$tmp_bubble"
 
 bubble_h=$(( body_lines + 2 ))
-portrait_h=$(awk 'END{print NR}' "$tmp_portrait")
-[ "$portrait_h" -ge 0 ] || portrait_h=0
 
-# Vertically center the bubble against the portrait (when portrait is taller).
-pad_top=0
-diff=$(( portrait_h - bubble_h ))
-if [ "$diff" -gt 0 ]; then
-  pad_top=$(( diff / 2 ))
-  padded="${TMPDIR:-/tmp}/claudiosay-padded.$$"
-  : > "$padded"
-  i=0; while [ "$i" -lt "$pad_top" ]; do printf '\n' >> "$padded"; i=$((i+1)); done
-  cat "$tmp_bubble" >> "$padded"
-  mv "$padded" "$tmp_bubble"
-fi
-
-# Arrow row in the spliced output: top-pad + top-border + middle-of-text-rows.
-arrow_row=$(( pad_top + 2 + body_lines / 2 ))
-
-# --- splice portrait + bubble side-by-side, inject "<- " at arrow row ---
-awk -v gutter="$gutter" -v arrow_row="$arrow_row" '
+# --- splice portrait + bubble side-by-side, with cowsay-style "/" tail ---
+# Bubble sits at top; below the bubble two "/" chars trail diagonally
+# down-left toward the portrait, mirroring cowsay's "\" tail.
+awk -v gutter="$gutter" -v bubble_h="$bubble_h" '
   NR==FNR { p[FNR]=$0; np=FNR; next }
-  {
-    line = (FNR <= np) ? p[FNR] : ""
-    sep = ""
-    for (i=0; i<gutter; i++) sep = sep " "
-    arrow = (FNR == arrow_row) ? "<- " : "   "
-    printf "%s\033[0m%s%s%s\n", line, sep, arrow, $0
-  }
+  { b[FNR]=$0; nb=FNR }
   END {
-    if (np > FNR) {
-      for (i = FNR+1; i <= np; i++) print p[i] "\033[0m"
+    sep = ""
+    for (i = 0; i < gutter; i++) sep = sep " "
+    total = (np > nb) ? np : nb
+    for (i = 1; i <= total; i++) {
+      pl = (i <= np) ? p[i] : ""
+      bl = (i <= nb) ? b[i] : ""
+      if (i == bubble_h + 1 && i <= np)      tail = "  /"
+      else if (i == bubble_h + 2 && i <= np) tail = " / "
+      else                                   tail = "   "
+      printf "%s\033[0m%s%s%s\n", pl, sep, tail, bl
     }
   }
 ' "$tmp_portrait" "$tmp_bubble"
