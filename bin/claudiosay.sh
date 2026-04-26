@@ -134,7 +134,11 @@ bubble_h=$(( body_lines + 2 ))
 # --- splice portrait + bubble side-by-side, with cowsay-style "/" tail ---
 # Bubble sits at top; below the bubble two "/" chars trail diagonally
 # down-left toward the portrait, mirroring cowsay's "\" tail.
-awk -v gutter="$gutter" -v bubble_h="$bubble_h" '
+# Pad each portrait slot to pw bytes so the bubble stays column-aligned
+# even when it overflows past the portrait's last row. Chafa lines are
+# already much longer than pw bytes (ANSI escapes), so %-*s is a no-op
+# for them; ASCII fallback / empty rows get space-padded to pw.
+awk -v gutter="$gutter" -v bubble_h="$bubble_h" -v pw="$pw" '
   NR==FNR { p[FNR]=$0; np=FNR; next }
   { b[FNR]=$0; nb=FNR }
   END {
@@ -147,7 +151,7 @@ awk -v gutter="$gutter" -v bubble_h="$bubble_h" '
       if (i == bubble_h + 1 && i <= np)      tail = "  /"
       else if (i == bubble_h + 2 && i <= np) tail = " / "
       else                                   tail = "   "
-      printf "%s\033[0m%s%s%s\n", pl, sep, tail, bl
+      printf "%-*s\033[0m%s%s%s\n", pw, pl, sep, tail, bl
     }
   }
 ' "$tmp_portrait" "$tmp_bubble"
