@@ -38,20 +38,21 @@ _bisio_b64_file() {
 
 # Emit one variant tile to stdout.
 _bisio_html_tile() {
-  _bht_slug=$1; _bht_count=$2; _bht_b64=$3
-  printf '<article class="tile"><img alt="%s" src="data:image/png;base64,%s"><h3>%s</h3><p class="count">%d×</p></article>\n' \
-    "$_bht_slug" "$_bht_b64" "$_bht_slug" "$_bht_count"
+  _bht_dex=$1; _bht_slug=$2; _bht_count=$3; _bht_b64=$4
+  printf '<article class="tile"><img alt="%s" src="data:image/png;base64,%s"><h3>#%s %s</h3><p class="count">%d×</p></article>\n' \
+    "$_bht_slug" "$_bht_b64" "$_bht_dex" "$_bht_slug" "$_bht_count"
 }
 
 # Render full hall-of-fame HTML to stdout. Caller redirects to a tmp file,
 # then atomically mv-renames to hall-of-fame.html.
 # Args: name date total final_slug final_pull main_streak nonmain_streak
-#       canonical_pipe_list bisio_dir counts_file
+#       dex_pipe_list bisio_dir counts_file
+# dex_pipe_list format: "01:main|02:allucinato|03:rapput|04:patema"
 _bisio_render_html() {
   _brh_name=$1; _brh_date=$2; _brh_total=$3; _brh_slug=$4; _brh_pull=$5
   _brh_main_streak=$6; _brh_nonmain_streak=$7
   shift 7
-  _brh_canlist=$1; _brh_dir=$2; _brh_counts=$3
+  _brh_dex_list=$1; _brh_dir=$2; _brh_counts=$3
 
   cat <<'__HEAD__'
 <!doctype html>
@@ -103,16 +104,24 @@ __HEAD__
   _brh_old_ifs=$IFS
   IFS='|'
   # shellcheck disable=SC2086
-  set -- $_brh_canlist
+  set -- $_brh_dex_list
   IFS=$_brh_old_ifs
-  for _slug in "$@"; do
+  for _entry in "$@"; do
+    [ -n "$_entry" ] || continue
+    _dex=${_entry%%:*}
+    _slug=${_entry#*:}
     [ -n "$_slug" ] || continue
-    _png="$_brh_dir/$_slug.png"
-    [ -f "$_png" ] || continue
+    # Glob for the prefixed png — accept any NN- prefix in case the file's
+    # on-disk number differs from the canonical-sort dex (shouldn't, but be defensive).
+    _png=""
+    for _candidate in "$_brh_dir"/[0-9][0-9]-"$_slug".png; do
+      [ -f "$_candidate" ] && _png=$_candidate && break
+    done
+    [ -n "$_png" ] || continue
     _count=$(awk -v k="$_slug" '$1==k { print $2; exit }' "$_brh_counts" 2>/dev/null)
     [ -n "$_count" ] || _count=0
     _b64=$(_bisio_b64_file "$_png")
-    _bisio_html_tile "$_slug" "$_count" "$_b64"
+    _bisio_html_tile "$_dex" "$_slug" "$_count" "$_b64"
   done
   printf '</section>\n'
 
@@ -185,11 +194,14 @@ bisio_record_pull() {
   _brp_counts="$_brp_state_dir/counts.txt"
   mkdir -p "$_brp_state_dir" 2>/dev/null || return 0
 
-  # Canonical = pngs ∩ slugs with positive BISIO_WEIGHT_*.
+  # Canonical = NN-prefixed pngs ∩ slugs with positive BISIO_WEIGHT_*.
+  # The `NN-` prefix is the canonical-membership gate: unprefixed PNGs in
+  # assets/bisio/ are silently skipped (matches picker behavior).
   _brp_canonical=$(
-    for f in "$_brp_bisio_dir"/*.png; do
+    for f in "$_brp_bisio_dir"/[0-9][0-9]-*.png; do
       [ -f "$f" ] || continue
-      _slug=${f##*/}; _slug=${_slug%.png}
+      _base=${f##*/}
+      _slug=${_base#[0-9][0-9]-}; _slug=${_slug%.png}
       _var=BISIO_WEIGHT_$(printf '%s' "$_slug" | tr '[:lower:]' '[:upper:]')
       eval "_w=\${$_var:-0}"
       # `[ -gt ]` quietly fails on non-numeric, which is the desired skip.
@@ -211,27 +223,23 @@ bisio_record_pull() {
   _brp_canonical_flat=$(printf '%s' "$_brp_canonical" | tr '\n' '|')
 
   # awk does the read-modify-prune-write atomically into _brp_tmp,
-  # then prints decision tokens on stdout for the shell to consume.
-  _brp_decision=$(
+  # then prints two stdout lines:
+  #   line 1: 10 decision tokens
+  #   line 2: NN:slug|NN:slug|... dex list for HoF rendering
+  _brp_full=$(
     awk -v slug="$_brp_slug" \
         -v streak_slug="$_BISIO_STREAK_SLUG" \
         -v canonical_list="$_brp_canonical_flat" \
         -v out_state="$_brp_tmp" '
       BEGIN {
+        # canonical_list comes pre-sorted in dex order from the shell glob
+        # `[0-9][0-9]-*.png` — no awk-side re-sort. canon_arr index = dex#.
         nc = split(canonical_list, _cans, "|")
         cn = 0
         for (i = 1; i <= nc; i++) {
           if (_cans[i] != "") {
             canonical[_cans[i]] = 1
             canon_arr[++cn] = _cans[i]
-          }
-        }
-        # Sort canon_arr ascending for deterministic write + tie-breaks.
-        for (i = 1; i <= cn; i++) {
-          for (j = i + 1; j <= cn; j++) {
-            if (canon_arr[j] < canon_arr[i]) {
-              t = canon_arr[i]; canon_arr[i] = canon_arr[j]; canon_arr[j] = t
-            }
           }
         }
       }
@@ -293,9 +301,20 @@ bisio_record_pull() {
         close(out_state)
 
         is_canonical = (slug in canonical) ? 1 : 0
-        printf "%d %d %d %d %d %d %d %d %d\n", \
+        dex_latest = 0
+        for (i = 1; i <= cn; i++) {
+          if (canon_arr[i] == slug) { dex_latest = i; break }
+        }
+        printf "%d %d %d %d %d %d %d %d %d %d\n", \
           pre_complete, post_complete, was_zero, is_canonical, \
-          n_seen, cn, total, mlng, nlng
+          n_seen, cn, total, mlng, nlng, dex_latest
+
+        # Second stdout line: NN:slug|NN:slug|... for HoF rendering.
+        for (i = 1; i <= cn; i++) {
+          if (i > 1) printf "|"
+          printf "%02d:%s", i, canon_arr[i]
+        }
+        printf "\n"
       }
     ' "$_brp_in"
   ) || { rm -f "$_brp_tmp"; return 0; }
@@ -305,13 +324,25 @@ bisio_record_pull() {
     return 0
   fi
 
+  # Split awk's two-line stdout into decision (line 1) and dex list (line 2)
+  # using a literal-newline IFS. POSIX-safe.
+  _brp_old_ifs=$IFS
+  IFS='
+'
+  # shellcheck disable=SC2086
+  set -- $_brp_full
+  IFS=$_brp_old_ifs
+  _brp_decision=${1:-}
+  _brp_dex_list=${2:-}
+
   # Parse decision tokens.
   # shellcheck disable=SC2086
   set -- $_brp_decision
-  [ "$#" -eq 9 ] || return 0
+  [ "$#" -eq 10 ] || return 0
   _pre=$1; _post=$2; _wasz=$3; _iscan=$4
   _nseen=$5; _ncan=$6; _total=$7
   _main_streak=$8; _nonmain_streak=$9
+  _dex_latest=${10}
 
   # Always export Bisiodex vars for banner status-line consumption.
   # `_wasz=1 && _iscan=1` covers both the new-variant-first-pull case and the
@@ -324,7 +355,12 @@ bisio_record_pull() {
   else
     BISIO_DEX_NEW=0
   fi
-  export BISIO_DEX_CAUGHT BISIO_DEX_TOTAL BISIO_DEX_LATEST BISIO_DEX_NEW
+  if [ "$_dex_latest" -gt 0 ] 2>/dev/null; then
+    BISIO_DEX_LATEST_NUM=$(printf '%02d' "$_dex_latest")
+  else
+    BISIO_DEX_LATEST_NUM=""
+  fi
+  export BISIO_DEX_CAUGHT BISIO_DEX_TOTAL BISIO_DEX_LATEST BISIO_DEX_NEW BISIO_DEX_LATEST_NUM
 
   # Edge transition → write hall-of-fame HTML and arm the announce flag.
   # No stdout from here; banner.sh emits the celebration after the dex bar.
@@ -338,7 +374,7 @@ bisio_record_pull() {
       _bisio_render_html \
         "$_bcname" "$_bcdate" "$_total" "$_brp_slug" "$_total" \
         "$_main_streak" "$_nonmain_streak" \
-        "$_brp_canonical_flat" "$_brp_bisio_dir" "$_brp_counts" \
+        "$_brp_dex_list" "$_brp_bisio_dir" "$_brp_counts" \
         > "$_hof_tmp" 2>/dev/null
       if mv "$_hof_tmp" "$_hof_path" 2>/dev/null; then
         BISIO_DEX_JUST_COMPLETED=1

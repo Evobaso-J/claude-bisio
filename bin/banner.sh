@@ -34,10 +34,14 @@ state_root="${XDG_STATE_HOME:-$HOME/.local/state}/claude-bisio"
 hint_sentinel="$state_root/hint-shown"
 first_sentinel="$state_root/first-shown"
 
-# First-ever banner show: force main.png so the user meets the canonical Bisio
+# First-ever banner show: force main so the user meets the canonical Bisio
 # before the weighted-random roulette kicks in on subsequent launches.
-if [ ! -f "$first_sentinel" ] && [ -f "$bisio_dir/main.png" ]; then
-  png="$bisio_dir/main.png"
+# File is named NN-main.png (e.g. 01-main.png) — glob to find it regardless of
+# its current dex#.
+if [ ! -f "$first_sentinel" ]; then
+  for _f in "$bisio_dir"/[0-9][0-9]-main.png; do
+    [ -f "$_f" ] && png=$_f && break
+  done
 fi
 
 # Record a missed banner call when we bail before rendering due to terminal
@@ -113,27 +117,33 @@ show_fallback() {
 }
 
 # Visual width of the Bisiodex body string (no ANSI).
-# Layout: optional "New Bisio discovered: <slug>!   " (26 + slug) + bar (10) + "  " (2) + "C/T".
+# Layout: optional "New Bisio discovered: #NN <slug>!   " (26 + 4 + slug when
+#         dex non-empty; 26 + slug otherwise) + bar (10) + "  " (2) + "C/T".
 # Counter is always rightmost.
 bisio_dex_body_width() {
   _bdw_caught=$1
   _bdw_total=$2
   _bdw_new=$3
   _bdw_latest=$4
+  _bdw_dexnum=$5
   _bdw_count="${_bdw_caught}/${_bdw_total}"
   _bdw=$(( 12 + ${#_bdw_count} ))
-  [ "$_bdw_new" = "1" ] && _bdw=$(( _bdw + 26 + ${#_bdw_latest} ))
+  if [ "$_bdw_new" = "1" ]; then
+    _bdw=$(( _bdw + 26 + ${#_bdw_latest} ))
+    [ -n "$_bdw_dexnum" ] && _bdw=$(( _bdw + 4 ))
+  fi
   printf '%s\n' "$_bdw"
 }
 
-# Print one Bisiodex status line (left-padded by $5) with trailing newline.
+# Print one Bisiodex status line (left-padded by $6) with trailing newline.
 # Bar is 10 segments. Color from CLAUDE_BISIO_DEX_COLOR or _NEW_COLOR.
 bisio_render_dex_line() {
   _drl_caught=$1
   _drl_total=$2
   _drl_new=$3
   _drl_latest=$4
-  _drl_pad=${5:-0}
+  _drl_dexnum=$5
+  _drl_pad=${6:-0}
 
   _drl_filled=${CLAUDE_BISIO_DEX_FILLED:-▰}
   _drl_empty=${CLAUDE_BISIO_DEX_EMPTY:-▱}
@@ -164,7 +174,11 @@ bisio_render_dex_line() {
 
   if [ "$_drl_new" = "1" ]; then
     _drl_active=$_drl_newcolor
-    _drl_prefix=$(printf 'New Bisio discovered: %s!   ' "$_drl_latest")
+    if [ -n "$_drl_dexnum" ]; then
+      _drl_prefix=$(printf 'New Bisio discovered: #%s %s!   ' "$_drl_dexnum" "$_drl_latest")
+    else
+      _drl_prefix=$(printf 'New Bisio discovered: %s!   ' "$_drl_latest")
+    fi
   else
     _drl_active=$_drl_color
     _drl_prefix=""
@@ -394,6 +408,7 @@ esac
 # Record the pull only when something was actually shown.
 if [ "$rendered" = "1" ] && command -v bisio_record_pull >/dev/null 2>&1; then
   pulled_slug=${png##*/}
+  pulled_slug=${pulled_slug#[0-9][0-9]-}
   pulled_slug=${pulled_slug%.png}
   bisio_record_pull "$pulled_slug" "$rows" "$cols" "${bisio_back:-1}"
 fi
@@ -403,7 +418,7 @@ fi
 if [ "$rendered" = "1" ] && [ -n "${BISIO_DEX_TOTAL:-}" ]; then
   dex_w=$(bisio_dex_body_width \
     "${BISIO_DEX_CAUGHT:-0}" "${BISIO_DEX_TOTAL:-0}" \
-    "${BISIO_DEX_NEW:-0}" "${BISIO_DEX_LATEST:-}")
+    "${BISIO_DEX_NEW:-0}" "${BISIO_DEX_LATEST:-}" "${BISIO_DEX_LATEST_NUM:-}")
   case "$layout" in
     solo)
       # No title block — center under image.
@@ -428,7 +443,7 @@ if [ "$rendered" = "1" ] && [ -n "${BISIO_DEX_TOTAL:-}" ]; then
   [ "$dex_pad" -lt 0 ] && dex_pad=0
   bisio_render_dex_line \
     "${BISIO_DEX_CAUGHT:-0}" "${BISIO_DEX_TOTAL:-0}" \
-    "${BISIO_DEX_NEW:-0}" "${BISIO_DEX_LATEST:-}" \
+    "${BISIO_DEX_NEW:-0}" "${BISIO_DEX_LATEST:-}" "${BISIO_DEX_LATEST_NUM:-}" \
     "$dex_pad"
 fi
 

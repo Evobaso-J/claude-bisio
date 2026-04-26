@@ -66,11 +66,12 @@ trap 'rm -f "$tmp_portrait" "$tmp_bubble" "$tmp_raw"' EXIT INT TERM
 state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/claude-bisio"
 hof_file="$state_dir/hall-of-fame.html"
 png=""
-if [ "${CLAUDE_BISIO_NO_COUNTER:-}" != "1" ] \
-   && [ ! -f "$hof_file" ] \
-   && [ -f "$bisio_dir/main.png" ]; then
-  png="$bisio_dir/main.png"
-elif command -v bisio_pick_portrait >/dev/null 2>&1; then
+if [ "${CLAUDE_BISIO_NO_COUNTER:-}" != "1" ] && [ ! -f "$hof_file" ]; then
+  for _f in "$bisio_dir"/[0-9][0-9]-main.png; do
+    [ -f "$_f" ] && png=$_f && break
+  done
+fi
+if [ -z "$png" ] && command -v bisio_pick_portrait >/dev/null 2>&1; then
   png=$(bisio_pick_portrait "$bisio_dir")
 fi
 

@@ -7,8 +7,9 @@ setup() {
   export FAKE_REPO="$TEST_TMP/repo"
   mkdir -p "$FAKE_REPO/assets/bisio" "$FAKE_REPO/bin"
 
-  for slug in main allucinato rapput patema; do
-    : > "$FAKE_REPO/assets/bisio/$slug.png"
+  # Files are NN-slug.png — the NN- prefix is the canonical-membership gate.
+  for entry in "01-main" "02-allucinato" "03-rapput" "04-patema"; do
+    : > "$FAKE_REPO/assets/bisio/${entry}.png"
   done
 
   export BISIO_WEIGHT_MAIN=45
@@ -41,6 +42,7 @@ read_count() {
   [ ! -s "$TEST_TMP/out" ]
   [ "$BISIO_DEX_NEW" = "1" ]
   [ "$BISIO_DEX_LATEST" = "main" ]
+  [ "$BISIO_DEX_LATEST_NUM" = "01" ]
   [ "$BISIO_DEX_CAUGHT" = "1" ]
   [ "$BISIO_DEX_TOTAL" = "4" ]
   [ -f "$(counts_file)" ]
@@ -71,6 +73,11 @@ read_count() {
   grep -q 'data:image/png;base64,' "$(hof_file)"
   grep -q 'Longest streak of main bisio' "$(hof_file)"
   grep -q 'Longest streak without seeing main bisio' "$(hof_file)"
+  # Tile headers carry the dex#.
+  grep -q '<h3>#01 main</h3>' "$(hof_file)"
+  grep -q '<h3>#02 allucinato</h3>' "$(hof_file)"
+  grep -q '<h3>#03 rapput</h3>' "$(hof_file)"
+  grep -q '<h3>#04 patema</h3>' "$(hof_file)"
 }
 
 @test "completion edge sets BISIO_DEX_JUST_COMPLETED, next non-edge clears it" {
@@ -107,7 +114,7 @@ read_count() {
     bisio_record_pull "$s" 30 80 >/dev/null
   done
   # Retire patema by zeroing its weight + removing the png from canonical scan.
-  rm "$FAKE_REPO/assets/bisio/patema.png"
+  rm "$FAKE_REPO/assets/bisio/04-patema.png"
   export BISIO_WEIGHT_PATEMA=0
 
   run bisio_record_pull "main" 30 80
@@ -121,7 +128,7 @@ read_count() {
   for s in main allucinato rapput patema; do
     bisio_record_pull "$s" 30 80 >/dev/null
   done
-  : > "$FAKE_REPO/assets/bisio/solai.png"
+  : > "$FAKE_REPO/assets/bisio/05-solai.png"
   export BISIO_WEIGHT_SOLAI=10
 
   bisio_record_pull "solai" 30 80 >/dev/null
