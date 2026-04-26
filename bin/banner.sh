@@ -15,46 +15,14 @@ title_bisio="$assets_dir/title-bisio.txt"
 config_file="$repo_dir/bin/banner.config.sh"
 [ -f "$config_file" ] && . "$config_file"
 
+picker="$repo_dir/bin/_pick_portrait.sh"
+# shellcheck source=bin/_pick_portrait.sh
+[ -f "$picker" ] && . "$picker"
+
 # --- pick a portrait from $bisio_dir/*.png ---
 png=""
-if [ -d "$bisio_dir" ]; then
-  set --
-  for f in "$bisio_dir"/*.png; do
-    [ -f "$f" ] && set -- "$@" "$f"
-  done
-  if [ "$#" -gt 0 ]; then
-    # Mix PID with seconds — BSD awk srand() has 1-sec resolution, so
-    # back-to-back calls in the same second would otherwise pick the same idx.
-    seed=$(( $$ ^ $(date +%s 2>/dev/null || echo 0) ))
-    png=$(printf '%s\n' "$@" | awk -v s="$seed" \
-      -v w_main="${BISIO_WEIGHT_MAIN:-0}" \
-      -v w_allucinato="${BISIO_WEIGHT_ALLUCINATO:-0}" \
-      -v w_rapput="${BISIO_WEIGHT_RAPPUT:-0}" \
-      -v w_patema="${BISIO_WEIGHT_PATEMA:-0}" '
-      BEGIN {
-        srand(s)
-        w["main"] = w_main + 0
-        w["allucinato"] = w_allucinato + 0
-        w["rapput"] = w_rapput + 0
-        w["patema"] = w_patema + 0
-      }
-      {
-        n = split($0, p, "/"); base = p[n]; sub(/\.png$/, "", base)
-        if ((base in w) && w[base] > 0) {
-          paths[++count] = $0; weights[count] = w[base]; total += w[base]
-        }
-      }
-      END {
-        if (count == 0 || total <= 0) exit
-        r = rand() * total; cum = 0
-        for (i = 1; i <= count; i++) {
-          cum += weights[i]
-          if (r < cum) { print paths[i]; exit }
-        }
-        print paths[count]
-      }
-    ')
-  fi
+if command -v bisio_pick_portrait >/dev/null 2>&1; then
+  png=$(bisio_pick_portrait "$bisio_dir")
 fi
 
 cache_root="${XDG_CACHE_HOME:-$HOME/.cache}/claude-bisio"

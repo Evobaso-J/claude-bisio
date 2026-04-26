@@ -1,8 +1,10 @@
 # claude-bisio
 
-A zsh wrapper that prints a Claudio Bisio banner before launching the [Claude Code](https://claude.com/claude-code) CLI.
+Claudio Bisio greets you every time you run `claude`!
 
-Claudio Bisio greets you every time you run `claude`. The banner auto-fits the terminal viewport: portrait rendered via [`chafa`](https://hpjansson.org/chafa/), with composed `CLAUDE` / `BISIO` figlet titles. Falls back to a static ASCII portrait if `chafa` isn't installed.
+A zsh wrapper that prints a Claudio Bisio banner before launching the [Claude Code](https://claude.com/claude-code) CLI. Falls back to a static ASCII portrait if `chafa` isn't installed.
+
+Ships with the [claudiosay](#claudiosay) utility that pipes messages through Bisio's mouth.
 
 <img src="assets/bisio-preview.gif" alt="claude-bisio banner preview" width="800">
 
@@ -78,6 +80,17 @@ claude -p "refactor this function"
 
 Standalone preview: `bisio`.
 
+### claudiosay
+
+Who needs `cowsay` when you can replace the cow with Claudio Bisio?
+Pass the message as args or pipe it on stdin:
+
+```sh
+claudiosay 'solai'
+echo 'solai' | claudiosay
+git log -1 --format=%s | claudiosay
+```
+
 ## Disable
 
 Remove the plugin entry (zinit/antigen/zplug/sheldon/oh-my-zsh) or delete the `source` line (manual install) from your config. Bypass for one invocation: `command claude ...`.
@@ -116,10 +129,6 @@ Layout picks itself based on terminal size:
 - **side** - portrait left, titles right (wide terminals)
 - **stacked** - portrait above, titles centered below (tall, narrow)
 - **solo** - portrait only (very small)
-
-## Roadmap
-
-- v0.4: `CLAUDE_BISIO_QUIET`, `CLAUDE_BISIO_CENTER`, subcommand CLI
 
 ## License
 
