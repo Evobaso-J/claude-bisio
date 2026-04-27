@@ -6,4 +6,4 @@
 *.log
 
 # Generated locally by bin/demo-hof.sh for HOF visual iteration.
-assets/hof-demo.html
+.assets/hof-demo.html
