@@ -21,6 +21,8 @@ The runtime "variant" axis is the portrait set, not deployment targets. Canonica
 
 Adding a variant: drop `assets/bisio/NN-newslug.png` and add `BISIO_WEIGHT_NEWSLUG=<n>` in `bin/banner.config.sh`. Picker is variant-agnostic; counter rebuilds the canonical set on every `bisio_record_pull` call.
 
+**Aspect contract.** PNGs in `assets/bisio/` must satisfy `height ≥ width` (portrait or square). The side-mode banner layout in `bin/banner.sh` reserves rows from `pw` assuming a portrait aspect; wider PNGs cause title text to render below the image instead of beside it. Pad wide source art with transparent rows top/bottom (e.g. `sips -p H W in.png --out out.png`) before committing. Enforced by `tests/bisio_assets.bats`.
+
 ## Configuration System
 
 <!-- exodia:section:config -->
