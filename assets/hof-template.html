@@ -9,8 +9,10 @@
   h1, h2, h3 { color: var(--acc); margin: 0 0 .5rem; }
   h1 { font-size: 1.6rem; letter-spacing: .04em; }
   h2 { font-size: 1.05rem; margin: 0 0 .75rem; letter-spacing: .03em; }
-  header { border-bottom: 1px solid var(--line); padding-bottom: 1rem; margin-bottom: 1.5rem; }
+  header { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 1rem; margin-bottom: 1.5rem; }
   header .meta { color: var(--dim); font-size: .9rem; }
+  header .repo-link { color: var(--acc); text-decoration: none; font-size: .85rem; white-space: nowrap; }
+  header .repo-link:hover { text-decoration: underline; }
   .stats-card { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 1.25rem 1.5rem; margin-bottom: 2rem; }
   .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.1rem 1.5rem; }
   .stat { min-width: 0; font-size: 1rem; line-height: 1.35; }
@@ -31,6 +33,9 @@
   .delta-good { color: var(--good); }
   .delta-warn { color: var(--warn); }
   .delta-bad  { color: var(--bad); }
+  .panels-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  @media (max-width: 700px) { .panels-2col { grid-template-columns: 1fr; } }
+  .panels-2col > section.panel { margin-bottom: 0; }
   .table-scroll { max-height: 200px; overflow-y: auto; }
   .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }
   @media (max-width: 800px) { .grid { grid-template-columns: repeat(2, 1fr); } }
@@ -51,7 +56,7 @@
   footer a { color: var(--acc); text-decoration: none; }
 </style>
 </head><body>
-<header><h1>✦ Hall of Fame ✦</h1><div class="meta">{{HEADER_NAME}} · {{HEADER_DATE}}</div></header>
+<header><div class="header-title"><h1>✦ Hall of Fame ✦</h1><div class="meta">{{HEADER_NAME}} · {{HEADER_DATE}}</div></div><a class="repo-link" href="https://github.com/Evobaso-J/claude-bisio">github.com/Evobaso-J/claude-bisio</a></header>
 <div class="stats-card">
 <section class="stats">
 <div class="stat"><span class="stat-label">Total pulls:</span> <b>{{TOTAL_PULLS}}</b></div>
@@ -59,7 +64,7 @@
 <div class="stat"><span class="stat-label">Final catch:</span> <b>{{FINAL_SLUG}}</b> (pull #{{FINAL_PULL}})</div>
 <div class="stat"><span class="stat-label">Most pulled:</span> {{MOST_VALUE}}</div>
 <div class="stat"><span class="stat-label">First variant seen:</span> {{FIRST_RANDOM_VALUE}}</div>
-<div class="stat"><span class="stat-label">Longest streak of main bisio:</span> <b>{{MAIN_STREAK}} pulls</b></div>
+<div class="stat"><span class="stat-label">Longest streak of main Bisio:</span> <b>{{MAIN_STREAK}} pulls</b></div>
 <div class="stat"><span class="stat-label">Longest non-main streak:</span> <b>{{NONMAIN_STREAK}} pulls</b></div>
 <div class="stat"><span class="stat-label">Longest dup streak:</span> {{DUP_VALUE}}</div>
 <div class="stat"><span class="stat-label">Longest all-different streak:</span> {{DIFF_VALUE}}</div>
@@ -73,5 +78,4 @@
 <section class="grid">
 {{TILES}}
 </section>
-<footer><a href="https://github.com/Evobaso-J/claude-bisio">github.com/Evobaso-J/claude-bisio</a></footer>
 </body></html>

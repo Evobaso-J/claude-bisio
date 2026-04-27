@@ -6,7 +6,7 @@ The "in-world" concepts the plugin presents to the user: variants, the Bisiodex 
 ## Entities
 
 <!-- exodia:section:entities -->
-- **Variant** — a Claudio Bisio portrait. Source of truth: `assets/bisio/NN-slug.png`. Canonical set is the intersection of (PNG with `NN-` prefix) ∩ (positive `BISIO_WEIGHT_<UPPER>` defined in `bin/banner.config.sh`). Current canonical members: `main`, `allucinato`, `rapput`, `patema` (see `bin/banner.config.sh:55-58`).
+- **Variant** — a Claudio Bisio portrait. Source of truth: `assets/bisio/NN-slug.png`. Canonical set is the intersection of (PNG with `NN-` prefix) ∩ (positive `BISIO_WEIGHT_<UPPER>` defined in `bin/banner.config.sh`). Slug→var rule: lowercase slug uppercased; hyphens stripped/avoided (see picker `tr` in `bin/_pick_portrait.sh`). For the live canonical list, read `assets/bisio/` and the weight block in `bin/banner.config.sh`.
 - **Bisiodex** — the user's collection state. Persisted as KV pairs in `counts.txt`. Surfaced to the banner via `BISIO_DEX_CAUGHT`, `BISIO_DEX_TOTAL`, `BISIO_DEX_LATEST`, `BISIO_DEX_NEW`, `BISIO_DEX_LATEST_NUM` (see `bin/_counter.sh:347-363`).
 - **Hall of Fame** — the completion-edge artifact. Self-contained HTML at `${XDG_STATE_HOME}/claude-bisio/hall-of-fame.html`. Renderer: `_bisio_render_html` (`bin/_counter.sh:51-130`). Includes per-variant tiles, longest main / non-main streaks, missed-banner count.
 - **Pull** — one banner-rendered launch where a variant was shown. Recorded by `bisio_record_pull`. Banner bails before rendering count as **misses** (`bisio_record_miss`).
@@ -27,7 +27,7 @@ The "in-world" concepts the plugin presents to the user: variants, the Bisiodex 
 2. User runs `claude` → banner renders the **main** variant on first launch (forced via `first-shown` sentinel; see `bin/banner.sh:41-45`).
 3. Subsequent bare `claude` runs draw a weighted-random variant.
 4. Counter records each pull; new variants flag `BISIO_DEX_NEW=1` and the dex bar shows "New Bisio discovered…".
-5. On the launch that catches the final canonical variant, the dex bar fills `4/4`, then the celebration line prints with an `OSC 8` hyperlink to `hall-of-fame.html`.
+5. On the launch that catches the final canonical variant, the dex bar fills (`N/N` where N = canonical-set size), then the celebration line prints with an `OSC 8` hyperlink to `hall-of-fame.html`.
 6. `claudiosay` is locked to **main** until the Hall of Fame file exists (see `bin/claudiosay.sh:67-73`); after completion it draws weighted-random.
 
 ## Type System
