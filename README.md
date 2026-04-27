@@ -91,6 +91,10 @@ echo 'solai' | claudiosay
 git log -1 --format=%s | claudiosay
 ```
 
+## Catch 'em all
+
+Each `claude` launch picks a portrait at random. Several Bisios roam the wild and a lucky few have glimpsed the rarest. What happens if you discover them all?
+
 ## Disable
 
 Remove the plugin entry (zinit/antigen/zplug/sheldon/oh-my-zsh) or delete the `source` line (manual install) from your config. Bypass for one invocation: `command claude ...`.
