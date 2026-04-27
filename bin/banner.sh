@@ -38,7 +38,9 @@ first_sentinel="$state_root/first-shown"
 # before the weighted-random roulette kicks in on subsequent launches.
 # File is named NN-main.png (e.g. 01-main.png) — glob to find it regardless of
 # its current dex#.
+first_ever=0
 if [ ! -f "$first_sentinel" ]; then
+  first_ever=1
   for _f in "$bisio_dir"/[0-9][0-9]-main.png; do
     [ -f "$_f" ] && png=$_f && break
   done
@@ -415,7 +417,7 @@ fi
 
 # Bisiodex status line. Renders only when the counter populated dex vars
 # (skipped on opt-out and on no-render fallback paths).
-if [ "$rendered" = "1" ] && [ -n "${BISIO_DEX_TOTAL:-}" ]; then
+if [ "$rendered" = "1" ] && [ "$first_ever" = "0" ] && [ -n "${BISIO_DEX_TOTAL:-}" ]; then
   dex_w=$(bisio_dex_body_width \
     "${BISIO_DEX_CAUGHT:-0}" "${BISIO_DEX_TOTAL:-0}" \
     "${BISIO_DEX_NEW:-0}" "${BISIO_DEX_LATEST:-}" "${BISIO_DEX_LATEST_NUM:-}")
