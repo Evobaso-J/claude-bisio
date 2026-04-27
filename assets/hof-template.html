@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>claude-bisio · Hall of Fame</title>
+<style>
+  :root { --bg:#0d0d0d; --fg:#d4d4d4; --acc:#ffd700; --dim:#888; --line:#333; --card:#161616; --good:#7cc97c; --warn:#e0c068; --bad:#e57c7c; }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--fg); font-family: "SF Mono","Cascadia Mono",Menlo,Consolas,monospace; margin: 0 auto; padding: 2rem; max-width: 1100px; }
+  h1, h2, h3 { color: var(--acc); margin: 0 0 .5rem; }
+  h1 { font-size: 1.6rem; letter-spacing: .04em; }
+  h2 { font-size: 1.05rem; margin: 0 0 .75rem; letter-spacing: .03em; }
+  header { border-bottom: 1px solid var(--line); padding-bottom: 1rem; margin-bottom: 1.5rem; }
+  header .meta { color: var(--dim); font-size: .9rem; }
+  .stats-card { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 1.25rem 1.5rem; margin-bottom: 2rem; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.1rem 1.5rem; }
+  .stat { min-width: 0; font-size: 1rem; line-height: 1.35; }
+  .stat-label { display: block; color: var(--dim); font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; margin-bottom: .15rem; }
+  .stat b { color: var(--acc); font-weight: 600; }
+  section.panel { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+  section.panel ol, section.panel ul { margin: 0; padding-left: 1.25rem; }
+  section.panel li { margin: .15rem 0; }
+  section.panel li b { color: var(--acc); }
+  .table-wrap { overflow-x: auto; }
+  table.dex { width: 100%; border-collapse: collapse; font-size: .92rem; }
+  table.dex th, table.dex td { padding: .4rem 1rem; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  table.dex th:first-child, table.dex td:first-child { padding-left: 0; }
+  table.dex th:last-child, table.dex td:last-child { padding-right: 0; }
+  table.dex th { color: var(--acc); font-weight: 600; }
+  table.dex tbody tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+  table.dex th.num, table.dex td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .delta-good { color: var(--good); }
+  .delta-warn { color: var(--warn); }
+  .delta-bad  { color: var(--bad); }
+  .table-scroll { max-height: 200px; overflow-y: auto; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }
+  @media (max-width: 800px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 500px) { .grid { grid-template-columns: 1fr; } }
+  .tile { display: flex; flex-direction: column; align-items: center; border: 1px solid var(--line); padding: .8rem; text-align: center; transition: border-color .15s; }
+  .tile:hover { border-color: var(--acc); }
+  .tile img { max-width: 100%; max-height: 280px; width: auto; height: auto; object-fit: contain; margin: 0 auto; image-rendering: pixelated; }
+  .tile h3 { font-size: 1rem; margin-top: auto; padding-top: .5rem; }
+  .tile-footer { display: flex; justify-content: space-between; align-items: baseline; width: 100%; padding-top: .5rem; font-size: .9rem; }
+  .tile-pulls { color: var(--dim); }
+  .tile-pulls b { color: var(--fg); font-weight: 600; }
+  .tile-rarity { font-weight: 600; letter-spacing: .04em; text-transform: uppercase; font-size: .8rem; }
+  .rarity-legendary { color: #ffd700; }
+  .rarity-rare      { color: #c060e0; }
+  .rarity-uncommon  { color: #6cb0ff; }
+  .rarity-common    { color: #888; }
+  footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--dim); font-size: .85rem; }
+  footer a { color: var(--acc); text-decoration: none; }
+</style>
+</head><body>
+<header><h1>✦ Hall of Fame ✦</h1><div class="meta">{{HEADER_NAME}} · {{HEADER_DATE}}</div></header>
+<div class="stats-card">
+<section class="stats">
+<div class="stat"><span class="stat-label">Total pulls:</span> <b>{{TOTAL_PULLS}}</b></div>
+<div class="stat"><span class="stat-label">Completion time:</span> <b>{{COMPLETION_TIME}}</b></div>
+<div class="stat"><span class="stat-label">Final catch:</span> <b>{{FINAL_SLUG}}</b> (pull #{{FINAL_PULL}})</div>
+<div class="stat"><span class="stat-label">Most pulled:</span> {{MOST_VALUE}}</div>
+<div class="stat"><span class="stat-label">First variant seen:</span> {{FIRST_RANDOM_VALUE}}</div>
+<div class="stat"><span class="stat-label">Longest streak of main bisio:</span> <b>{{MAIN_STREAK}} pulls</b></div>
+<div class="stat"><span class="stat-label">Longest non-main streak:</span> <b>{{NONMAIN_STREAK}} pulls</b></div>
+<div class="stat"><span class="stat-label">Longest dup streak:</span> {{DUP_VALUE}}</div>
+<div class="stat"><span class="stat-label">Longest all-different streak:</span> {{DIFF_VALUE}}</div>
+<div class="stat"><span class="stat-label">Missed (tiny terminal):</span> <b>{{MISSED_BANNER}}</b></div>
+</section>
+</div>
+<section class="panel"><h2>RNG sanity</h2><div class="table-wrap table-scroll">
+<table class="dex"><thead><tr><th>Variant</th><th class="num">Actual %</th><th class="num">Expected %</th><th class="num">Δ</th></tr></thead><tbody>
+{{RNG_ROWS}}
+</tbody></table></div></section>
+<section class="grid">
+{{TILES}}
+</section>
+<footer><a href="https://github.com/Evobaso-J/claude-bisio">github.com/Evobaso-J/claude-bisio</a></footer>
+</body></html>
