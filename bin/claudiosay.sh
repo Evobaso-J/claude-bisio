@@ -59,11 +59,23 @@ tmp_bubble="${TMPDIR:-/tmp}/claudiosay-bubble.$$"
 tmp_raw="${TMPDIR:-/tmp}/claudiosay-raw.$$"
 trap 'rm -f "$tmp_portrait" "$tmp_bubble" "$tmp_raw"' EXIT INT TERM
 
-# --- pick portrait + render via chafa (with same cache scheme as banner.sh) ---
+# --- pick portrait ---
+# Gate: until the user reaches the Hall of Fame, claudiosay is locked to main
+# so rare variants stay a banner-only discovery. CLAUDE_BISIO_NO_COUNTER
+# users opted out of the dex game — give them random as before.
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/claude-bisio"
+hof_file="$state_dir/hall-of-fame.html"
 png=""
-if command -v bisio_pick_portrait >/dev/null 2>&1; then
+if [ "${CLAUDE_BISIO_NO_COUNTER:-}" != "1" ] && [ ! -f "$hof_file" ]; then
+  for _f in "$bisio_dir"/[0-9][0-9]-main.png; do
+    [ -f "$_f" ] && png=$_f && break
+  done
+fi
+if [ -z "$png" ] && command -v bisio_pick_portrait >/dev/null 2>&1; then
   png=$(bisio_pick_portrait "$bisio_dir")
 fi
+
+# --- render via chafa (with same cache scheme as banner.sh) ---
 
 : > "$tmp_portrait"
 if [ -n "$png" ] && [ -f "$png" ] && command -v chafa >/dev/null 2>&1; then

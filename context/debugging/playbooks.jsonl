@@ -1,0 +1,1 @@
+{"_schema": "pb", "_version": "1.0", "_description": "Reproducible bug diagnoses: symptoms seen, root cause found, fix applied. Append only; prefer a new entry over editing when understanding evolves.", "_fields": ["id", "title", "symptoms", "root_cause", "fix", "files", "tags", "created", "status"]}

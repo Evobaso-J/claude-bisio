@@ -1,0 +1,32 @@
+# Per-variant behavioral differences and registry of canonical portrait variants.
+# Source of truth for weights: bin/banner.config.sh (BISIO_WEIGHT_<UPPER_SLUG>).
+# Source of truth for assets: assets/bisio/NN-slug.png.
+# This file is a discoverability index — values are pointers, not copies.
+
+variants:
+  default:
+    notes: "Weighted-random pick from canonical set, except first-ever banner (forced to 01-main via first-shown sentinel)."
+
+  main:
+    dex: "01"
+    asset: "assets/bisio/01-main.png"
+    weight_var: "BISIO_WEIGHT_MAIN"
+    notes: "The canonical Bisio. Forced on first banner. Subject of the main streak counter (__main_streak_*)."
+
+  allucinato:
+    dex: "02"
+    asset: "assets/bisio/02-allucinato.png"
+    weight_var: "BISIO_WEIGHT_ALLUCINATO"
+    notes: "Counts toward the non-main streak counter."
+
+  rapput:
+    dex: "03"
+    asset: "assets/bisio/03-rapput.png"
+    weight_var: "BISIO_WEIGHT_RAPPUT"
+    notes: "Counts toward the non-main streak counter."
+
+  patema:
+    dex: "04"
+    asset: "assets/bisio/04-patema.png"
+    weight_var: "BISIO_WEIGHT_PATEMA"
+    notes: "Rarest of the canonical set. Counts toward the non-main streak counter."
