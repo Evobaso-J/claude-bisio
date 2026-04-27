@@ -10,7 +10,7 @@ Single execution environment: the user's interactive zsh session. State and cach
 - State: `${XDG_STATE_HOME:-$HOME/.local/state}/claude-bisio/`
 - Cache: `${XDG_CACHE_HOME:-$HOME/.cache}/claude-bisio/`
 
-CI runs on `ubuntu-latest` only (see `.github/workflows/test.yml:10`). macOS / Linux distinctions are runtime concerns handled by `install.sh` (package-manager dispatch) and `bin/banner.sh:detect_install_cmd` (hint message only).
+CI runs on `ubuntu-latest` only (see `.github/workflows/test.yml:10`). macOS / Linux distinctions are runtime concerns handled by `install.sh` (package-manager dispatch).
 
 Supported install hosts: macOS (Homebrew), Linux (`apt-get` / `dnf` / `pacman` / `zypper` / `apk`). Windows users go via WSL. Source: `install.sh:42-77`.
 

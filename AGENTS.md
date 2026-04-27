@@ -16,7 +16,7 @@ Route by task type. Read the relevant L2 module, then load L3 data (`.jsonl` / `
 | Task type | Load |
 | --------- | ---- |
 | Banner pipeline, render flow, plugin entry, file layout, state/cache paths | `context/architecture/ARCHITECTURE.md` |
-| Shell idioms, env-var contracts, chafa cache scheme, fallback strategy, testing | `context/patterns/PATTERNS.md` |
+| Shell idioms, env-var contracts, chafa cache scheme, miss handling, testing | `context/patterns/PATTERNS.md` |
 | Bisio variants, Bisiodex, Hall of Fame, in-world naming, `BISIO_DEX_*` semantics | `context/domain/DOMAIN.md` |
 | Install/update flow, CI, oh-my-zsh integration, config knobs, adding a variant | `context/operations/OPERATIONS.md` |
 | Banner doesn't render, terminal-size bails, chafa missing, SessionStart-hook history | `context/debugging/DEBUGGING.md` |

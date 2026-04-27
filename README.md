@@ -71,7 +71,7 @@ Remove the plugin entry (zinit/antigen/zplug/sheldon/oh-my-zsh) or delete the `s
 - `zsh`
 - [`claude`](https://claude.com/claude-code) on `$PATH`
 - Interactive terminal (banner auto-skips for pipes and non-TTYs)
-- [`chafa`](https://hpjansson.org/chafa/) recommended - installed automatically by `install.sh`. Without it, a static ASCII fallback prints and a one-time install hint is shown.
+- [`chafa`](https://hpjansson.org/chafa/) required - installed automatically by `install.sh`. Without it, the banner is silently skipped.
 
 ## ⚙️ Configuration
 

@@ -9,7 +9,7 @@ How to diagnose problems with the banner, counter, or install path. Start here w
 Requirements (see `README.md` § Requirements):
 - `zsh` (interactive)
 - `claude` on `$PATH`
-- `chafa` (recommended; static fallback ships at `assets/bisio-fallback.txt`)
+- `chafa` (mandatory; banner is silently skipped without it)
 
 For test runs:
 - `bats` — see `.github/workflows/test.yml:14-17` for CI install (`sudo apt-get install -y bats shellcheck` on Ubuntu).
@@ -32,7 +32,7 @@ State + cache locations (delete to reset): `${XDG_STATE_HOME:-$HOME/.local/state
 - **Banner does not render** — gating is strict: bare `claude` only, both stdin and stdout must be TTY. Pipes / non-TTY output skip silently. See `claude-bisio.plugin.zsh:7`.
 - **Banner bails on small terminals** — minimum 30 cols × 8 rows; below that → `_bisio_miss_and_exit` (records a miss). See `bin/banner.sh:60`.
 - **`/dev/tty` and stty errors leak to stderr** — must wrap in subshell: `size=$( (stty size < /dev/tty) 2>/dev/null )`. The shell's open-error fires before the redirect's `2>/dev/null` takes effect. → gotcha `g001`.
-- **Chafa missing** — one-time hint via `print_hint_once` (sentinel `state_root/hint-shown`), then `show_fallback`. Detect_install_cmd dispatches per OS / package manager (see `bin/banner.sh:63-104`).
+- **Chafa missing** — banner silently skips via `_bisio_miss_and_exit`. `install.sh` provisions chafa per OS / package manager.
 - **Cache stale** — invalidates automatically on PNG bytes or flag string change. To force: `rm -rf "${XDG_CACHE_HOME:-$HOME/.cache}/claude-bisio"`.
 - **First-pull bias** — fresh state forces `01-main.png` regardless of weights, gated by `first-shown` sentinel (`bin/banner.sh:41-45`). Delete sentinel to reset that behavior.
 - **Counter test isolation** — bats tests source `bin/_counter.sh` after setting `XDG_STATE_HOME` and a fake `repo_dir` (see `tests/counter.bats:23-26`). Tests calling `bisio_record_pull` directly (not via `run`) preserve exported `BISIO_DEX_*` vars; tests asserting stdout/exit status use `run`.

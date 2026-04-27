@@ -25,7 +25,7 @@ Gating is identical across `claude_with_banner` and `bisio`: bare invocation onl
 - `bin/_counter.sh` — collection state I/O. Public: `bisio_record_pull`, `bisio_record_miss`, `bisio_announce_completion`. Private: `_bisio_*` helpers, HTML render, awk state machine.
 - `bin/claudiosay.sh` — standalone, reuses picker + chafa cache scheme from banner.sh.
 - `assets/bisio/` — canonical PNGs (`NN-slug.png`); the `NN-` prefix is the canonical-membership gate (see `bin/_counter.sh:197-211`).
-- `assets/bisio-fallback.txt`, `assets/title-*.txt` — static text assets composed by banner.sh.
+- `assets/title-*.txt` — static figlet titles composed by banner.sh.
 - `tests/counter.bats` — counter logic only; isolates `XDG_STATE_HOME` per test.
 
 ## State Management
@@ -34,7 +34,7 @@ Gating is identical across `claude_with_banner` and `bisio`: bare invocation onl
 Two filesystem roots, both XDG-compliant. Paths defined in `bin/banner.sh:32-33` and `bin/_counter.sh:10-11`.
 
 - `${XDG_CACHE_HOME:-$HOME/.cache}/claude-bisio/v1-<png_sha>-<flags_sha>/<WxH>.ans` — chafa render cache. Auto-invalidates when PNG bytes or chafa flag string change.
-- `${XDG_STATE_HOME:-$HOME/.local/state}/claude-bisio/` — counts.txt (KV `slug count`, `__metadata` keys), `hall-of-fame.html`, `hint-shown` sentinel, `first-shown` sentinel.
+- `${XDG_STATE_HOME:-$HOME/.local/state}/claude-bisio/` — counts.txt (KV `slug count`, `__metadata` keys), `hall-of-fame.html`, `first-shown` sentinel.
 
 State writes go through `mktemp` + `mv` rename for atomicity (see `bin/_counter.sh:220, 322, 372-379`).
 

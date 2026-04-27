@@ -23,7 +23,7 @@ Shell idioms used across `bin/`. Read this before introducing new shell code or 
 ## API & External Services
 
 <!-- exodia:section:api -->
-External commands used: `chafa` (PNG → ANSI), `git` (install/update), `awk`, `stty`, `shasum` / `sha256sum`, `base64`, `mktemp`, `figlet` artifacts (pre-rendered into `assets/title-*.txt`). All optional except `chafa` for the rich render path; `assets/bisio-fallback.txt` is the chafa-missing fallback.
+External commands used: `chafa` (PNG → ANSI; mandatory — banner skips silently if missing), `git` (install/update), `awk`, `stty`, `shasum` / `sha256sum`, `base64`, `mktemp`, `figlet` artifacts (pre-rendered into `assets/title-*.txt`).
 
 Chafa is invoked once per layout decision. Render cache key: `v1-${png_sha:0:8}-${flags_sha:0:8}/${pw}x${ph}.ans`. PNG sha is over the file bytes; flags sha is over the assembled `$*` chafa flag string. Both shas degrade to `nosha` if neither `shasum` nor `sha256sum` is on PATH (see `bin/banner.sh:202-209`).
 
@@ -39,7 +39,7 @@ No telemetry leaves the machine. Local instrumentation:
 
 - `counts.txt` — per-variant pull counts + `__metadata` keys (`__main_streak_current`, `__main_streak_longest`, `__nonmain_streak_*`, `__missed_banner`).
 - `hall-of-fame.html` — generated on completion edge; embeds variant tiles as base64 data URIs so the file is self-contained.
-- `hint-shown`, `first-shown` sentinels under `$XDG_STATE_HOME/claude-bisio/` — one-shot flags.
+- `first-shown` sentinel under `$XDG_STATE_HOME/claude-bisio/` — one-shot flag.
 
 ## Testing
 
@@ -52,8 +52,8 @@ No telemetry leaves the machine. Local instrumentation:
 <!-- exodia:section:a11y -->
 Terminal accessibility:
 - Banner gates on TTY: skipped under non-TTY stdin/stdout (see `claude-bisio.plugin.zsh:7`).
-- Static ASCII fallback at `assets/bisio-fallback.txt` when `chafa` is missing.
-- Hall of Fame plain-text fallback in `bisio_announce_completion` under non-TTY (see `bin/_counter.sh:171-175`).
+- Banner is silently skipped when `chafa` is missing (chafa is mandatory; `install.sh` provisions it).
+- Hall of Fame plain-text fallback in `bisio_announce_completion` under non-TTY.
 - No i18n. UI strings are English.
 
 ## L3 Data

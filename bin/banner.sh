@@ -1,14 +1,13 @@
 #!/bin/sh
 # claude-bisio banner core. POSIX sh.
 # Renders a viewport-fit Bisio portrait via chafa, with composed figlet titles.
-# Falls back to a static heredoc if chafa is missing.
+# chafa is mandatory; missing chafa or render failure silently skip the banner.
 
 set -u
 
 repo_dir="${CLAUDE_BISIO_DIR:-$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)}"
 assets_dir="$repo_dir/assets"
 bisio_dir="$assets_dir/bisio"
-fallback_txt="$assets_dir/bisio-fallback.txt"
 title_cc="$assets_dir/title-claude-code.txt"
 title_bisio="$assets_dir/title-bisio.txt"
 
@@ -31,7 +30,6 @@ fi
 
 cache_root="${XDG_CACHE_HOME:-$HOME/.cache}/claude-bisio"
 state_root="${XDG_STATE_HOME:-$HOME/.local/state}/claude-bisio"
-hint_sentinel="$state_root/hint-shown"
 first_sentinel="$state_root/first-shown"
 
 # First-ever banner show: force main so the user meets the canonical Bisio
@@ -60,63 +58,6 @@ rows=${size% *}
 cols=${size#* }
 case "$rows$cols" in *[!0-9]*) _bisio_miss_and_exit ;; esac
 [ "$cols" -ge 30 ] && [ "$rows" -ge 8 ] || _bisio_miss_and_exit
-
-# --- helpers ---
-detect_install_cmd() {
-  # macOS has its own /usr/bin/apt (Java tool, not the Debian one) - anchor on uname.
-  os=$(uname -s 2>/dev/null)
-  case "$os" in
-    Darwin)
-      if command -v brew >/dev/null 2>&1; then
-        printf 'brew install chafa'
-        return
-      fi
-      printf 'brew install chafa  (install Homebrew first: https://brew.sh)'
-      return
-      ;;
-    Linux|*BSD)
-      if command -v brew >/dev/null 2>&1; then
-        printf 'brew install chafa'
-      elif command -v apt-get >/dev/null 2>&1; then
-        printf 'sudo apt-get install chafa'
-      elif command -v dnf >/dev/null 2>&1; then
-        printf 'sudo dnf install chafa'
-      elif command -v pacman >/dev/null 2>&1; then
-        printf 'sudo pacman -S chafa'
-      elif command -v zypper >/dev/null 2>&1; then
-        printf 'sudo zypper install chafa'
-      elif command -v apk >/dev/null 2>&1; then
-        printf 'sudo apk add chafa'
-      else
-        printf "install 'chafa' via your package manager"
-      fi
-      return
-      ;;
-  esac
-  # Windows (msys/cygwin/git-bash) and other
-  if command -v choco >/dev/null 2>&1; then
-    printf 'choco install chafa'
-  elif command -v scoop >/dev/null 2>&1; then
-    printf 'scoop install chafa'
-  elif command -v winget >/dev/null 2>&1; then
-    printf 'winget install chafa'
-  else
-    printf "install 'chafa' via your package manager"
-  fi
-}
-
-print_hint_once() {
-  [ -f "$hint_sentinel" ] && return 0
-  mkdir -p "$state_root" 2>/dev/null || return 0
-  cmd=$(detect_install_cmd)
-  printf '[claude-bisio] chafa not found - install for viewport-fit: %s\n\n' "$cmd"
-  : > "$hint_sentinel" 2>/dev/null || true
-}
-
-show_fallback() {
-  [ -f "$fallback_txt" ] && cat "$fallback_txt"
-  printf '\n'
-}
 
 # Visual width of the Bisiodex body string (no ANSI).
 # Layout: optional "New Bisio discovered: #NN <slug>!   " (26 + 4 + slug when
@@ -191,14 +132,10 @@ bisio_render_dex_line() {
     "$_drl_prefix" "$_drl_bar" "$_drl_caught" "$_drl_total"
 }
 
-# --- chafa missing path ---
-if ! command -v chafa >/dev/null 2>&1; then
-  print_hint_once
-  show_fallback
-  exit 0
-fi
+# --- chafa mandatory ---
+command -v chafa >/dev/null 2>&1 || _bisio_miss_and_exit
 
-[ -f "$png" ] || { show_fallback; exit 0; }
+[ -f "$png" ] || _bisio_miss_and_exit
 
 # --- PNG sha for cache key ---
 if command -v shasum >/dev/null 2>&1; then
@@ -324,11 +261,10 @@ fi
 # --- render or cache hit ---
 cache_file="$cache_dir/${pw}x${ph}.ans"
 if [ ! -f "$cache_file" ]; then
-  mkdir -p "$cache_dir" 2>/dev/null || { show_fallback; exit 0; }
+  mkdir -p "$cache_dir" 2>/dev/null || _bisio_miss_and_exit
   if ! chafa --size "${pw}x${ph}" "$@" "$png" > "$cache_file" 2>/dev/null; then
     rm -f "$cache_file"
-    show_fallback
-    exit 0
+    _bisio_miss_and_exit
   fi
 fi
 
@@ -416,7 +352,7 @@ if [ "$rendered" = "1" ] && command -v bisio_record_pull >/dev/null 2>&1; then
 fi
 
 # Bisiodex status line. Renders only when the counter populated dex vars
-# (skipped on opt-out and on no-render fallback paths).
+# (skipped on opt-out and on no-render miss paths).
 if [ "$rendered" = "1" ] && [ "$first_ever" = "0" ] && [ -n "${BISIO_DEX_TOTAL:-}" ]; then
   dex_w=$(bisio_dex_body_width \
     "${BISIO_DEX_CAUGHT:-0}" "${BISIO_DEX_TOTAL:-0}" \

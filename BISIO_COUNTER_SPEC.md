@@ -43,7 +43,7 @@ Everything else in this spec — state schema, streak metadata, `__first_pull_ep
 | Q13 | Share URL prefill | Stat-heavy English (template below) |
 | Q14 | Tests | Bats + fixtures + GitHub Actions CI. New `tests/counter.bats`, ~150 lines |
 | Q15 | Picker / counter coupling | New file `bin/_counter.sh` exposing `bisio_record_pull` + `bisio_format_milestone_or_card`. Sourced only by `banner.sh`. Picker (`_pick_portrait.sh`) stays pure |
-| Q15.5 | Increment site | Increment fires AFTER successful chafa render in `banner.sh`, NOT after pick. Skip-entirely paths and fallback-heredoc paths must not increment. Rule: count only what the user actually saw |
+| Q15.5 | Increment site | Increment fires AFTER successful chafa render in `banner.sh`, NOT after pick. Skip-entirely paths must not increment. Rule: count only what the user actually saw |
 | Q16 | Card visual | Unicode double-box `╔═╗║╚╝`. ~54 cols wide |
 | Q17 | Ship scope | Single PR, single version bump → v0.3.0. No staged/feature-flagged rollout |
 | Q18 | Narrow terminal | Tiered: `cols < 60` → compact stat lines (no box), `cols ≥ 60` → full double-box. `collection-card.txt` always full-format box (file is for sharing, not viewing) |
@@ -57,7 +57,7 @@ Everything else in this spec — state schema, streak metadata, `__first_pull_ep
 
 **Path:** `${XDG_STATE_HOME:-$HOME/.local/state}/claude-bisio/counts.txt`
 
-(Sibling of existing `hint-shown` sentinel created by `banner.sh`.)
+(Sibling of existing `first-shown` sentinel created by `banner.sh`.)
 
 **Format:** kv plain text. One line per key.
 
