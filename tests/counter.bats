@@ -12,9 +12,6 @@ setup() {
     : > "$FAKE_REPO/assets/bisio/${entry}.png"
   done
 
-  # HoF render needs the static template at $repo_dir/assets/hof-template.html.
-  cp "$BATS_TEST_DIRNAME/../assets/hof-template.html" "$FAKE_REPO/assets/hof-template.html"
-
   export BISIO_WEIGHT_MAIN=45
   export BISIO_WEIGHT_ALLUCINATO=30
   export BISIO_WEIGHT_RAPPUT=20

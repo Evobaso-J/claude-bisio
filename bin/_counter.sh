@@ -42,12 +42,12 @@ _bisio_html_escape() {
   printf '%s' "$1" | sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e "s/'/\&#39;/g" -e 's/"/\&quot;/g'
 }
 
-# Build per-variant <tr> rows for the RNG-sanity table.
-# The panel's <thead> + wrapping <table>/<section> live in the template.
-# rng_out is the path the awk program writes its panel rows into.
-# Args: dex_list counts_file weights rng_out
+# Build per-variant <tr> rows for the RNG-sanity table to stdout.
+# The panel's <thead> + wrapping <table>/<section> live in the inline HTML
+# body inside _bisio_render_html.
+# Args: dex_list counts_file weights
 _bisio_hof_table_rows() {
-  awk -v dex="$1" -v counts="$2" -v weights="$3" -v rng_out="$4" '
+  awk -v dex="$1" -v counts="$2" -v weights="$3" '
     BEGIN {
       while ((getline ln < counts) > 0) {
         if (ln ~ /^[A-Za-z0-9_]+ [0-9]+$/) {
@@ -85,9 +85,8 @@ _bisio_hof_table_rows() {
         cls      = (absd < 5) ? "delta-good" : ((absd < 15) ? "delta-warn" : "delta-bad")
         sign     = (delta >= 0) ? "+" : ""
         printf "<tr><td>%s</td><td class=\"num\">%.1f%%</td><td class=\"num\">%.1f%%</td><td class=\"num %s\">%s%.1f%%</td></tr>\n", \
-          s, actual, expected, cls, sign, delta > rng_out
+          s, actual, expected, cls, sign, delta
       }
-      close(rng_out)
     }'
 }
 
@@ -162,10 +161,9 @@ _bisio_format_duration() {
   fi
 }
 
-# Render full hall-of-fame HTML to stdout by populating the static template
-# at $repo_dir/assets/hof-template.html. Caller redirects to a tmp file,
+# Render full hall-of-fame HTML to stdout. The page body is inlined as a
+# heredoc below — no external template file. Caller redirects to a tmp file,
 # then atomically mv-renames to hall-of-fame.html.
-# Returns non-zero if the template is missing — caller treats as render failure.
 # Args: name date total final_slug final_pull main_streak nonmain_streak
 #       dex_pipe_list bisio_dir counts_file completion_time
 # dex_pipe_list format: "01:main|02:allucinato|03:rapput|04:patema"
@@ -174,10 +172,6 @@ _bisio_render_html() {
   _brh_main_streak=$6; _brh_nonmain_streak=$7
   shift 7
   _brh_dex_list=$1; _brh_dir=$2; _brh_counts=$3; _brh_completion_time=$4
-
-  _brh_repo="${repo_dir:-}"
-  _brh_template="$_brh_repo/assets/hof-template.html"
-  [ -f "$_brh_template" ] || return 1
 
   # Build canonical weights string `slug:weight|slug:weight|…` from env, in
   # dex order so RNG-sanity rows match the dex sequence.
@@ -234,7 +228,7 @@ _bisio_render_html() {
   _most_slug=${_most_pair% *}; _most_count=${_most_pair##* }
 
   # Conditional-row inner-content fragments. Empty data → literal em-dash;
-  # populated → the same `<b>…</b> (…)` HTML the old printf chain emitted.
+  # populated → `<b>…</b> (…)` matching the visual design.
   if [ -n "$_most_slug" ]; then
     _most_value=$(printf '<b>%s</b> (%d×)' "$_most_slug" "$_most_count")
   else
@@ -260,62 +254,98 @@ _bisio_render_html() {
     _diff_value="—"
   fi
 
-  # Scratch fragment files live in the same dir as the final HTML so the
-  # caller's mktemp+mv stays on the same FS. Cleaned up explicitly on every
-  # return path — POSIX `trap` is process-wide and would leak past return.
-  _brh_state_dir=$(dirname "$_brh_counts")
-  _brh_rng=$(mktemp "$_brh_state_dir/hof-rng.XXXXXX") || return 1
-  _brh_tiles=$(mktemp "$_brh_state_dir/hof-tiles.XXXXXX") || { rm -f "$_brh_rng"; return 1; }
+  # Block fragments. `$()` strips the trailing newline of each fragment, but
+  # the heredoc adds its own newline after each `${…}` expansion, so the seam
+  # remains a single `\n` between rows/tiles and the closing tag.
+  _brh_rng=$(_bisio_hof_table_rows "$_brh_dex_list" "$_brh_counts" "$_brh_weights") || return 1
+  _brh_tiles=$(_bisio_hof_tiles_frag "$_brh_dex_list" "$_brh_dir" "$_brh_counts") || return 1
 
-  _bisio_hof_table_rows "$_brh_dex_list" "$_brh_counts" "$_brh_weights" "$_brh_rng"
-  _bisio_hof_tiles_frag "$_brh_dex_list" "$_brh_dir" "$_brh_counts" > "$_brh_tiles"
+  # HTML-escape git user.name (only render input not gated by a strict regex).
+  _brh_name_esc=$(_bisio_html_escape "$_brh_name")
 
-  # HTML-escape git user.name, then escape gsub-replacement metachars (`\` and
-  # `&`) so e.g. names containing `&` round-trip as `&amp;` instead of being
-  # treated as awk's whole-match backreference.
-  _brh_name_esc=$(_bisio_html_escape "$_brh_name" | sed -e 's/\\/\\\\/g' -e 's/&/\\&/g')
-
-  awk -v name_esc="$_brh_name_esc" \
-      -v date_iso="$_brh_date" \
-      -v total_pulls="$_brh_total" \
-      -v final_slug="$_brh_slug" \
-      -v final_pull="$_brh_pull" \
-      -v main_streak="$_brh_main_streak" \
-      -v nonmain_streak="$_brh_nonmain_streak" \
-      -v missed_banner="$_missed" \
-      -v most_value="$_most_value" \
-      -v first_random_value="$_first_random_value" \
-      -v dup_value="$_dup_value" \
-      -v diff_value="$_diff_value" \
-      -v completion_time="$_brh_completion_time" \
-      -v rng_path="$_brh_rng" \
-      -v tiles_path="$_brh_tiles" '
-    BEGIN {
-      rng   = ""; while ((getline ln < rng_path)     > 0) rng   = rng   ln "\n"; close(rng_path)
-      tiles = ""; while ((getline ln < tiles_path)   > 0) tiles = tiles ln "\n"; close(tiles_path)
-    }
-    /^[[:space:]]*\{\{RNG_ROWS\}\}[[:space:]]*$/          { printf "%s", rng;   next }
-    /^[[:space:]]*\{\{TILES\}\}[[:space:]]*$/             { printf "%s", tiles; next }
-    {
-      gsub(/\{\{HEADER_NAME\}\}/, name_esc)
-      gsub(/\{\{HEADER_DATE\}\}/, date_iso)
-      gsub(/\{\{TOTAL_PULLS\}\}/, total_pulls)
-      gsub(/\{\{FINAL_SLUG\}\}/, final_slug)
-      gsub(/\{\{FINAL_PULL\}\}/, final_pull)
-      gsub(/\{\{MAIN_STREAK\}\}/, main_streak)
-      gsub(/\{\{NONMAIN_STREAK\}\}/, nonmain_streak)
-      gsub(/\{\{MISSED_BANNER\}\}/, missed_banner)
-      gsub(/\{\{MOST_VALUE\}\}/, most_value)
-      gsub(/\{\{FIRST_RANDOM_VALUE\}\}/, first_random_value)
-      gsub(/\{\{DUP_VALUE\}\}/, dup_value)
-      gsub(/\{\{DIFF_VALUE\}\}/, diff_value)
-      gsub(/\{\{COMPLETION_TIME\}\}/, completion_time)
-      print
-    }' "$_brh_template"
-  _brh_rc=$?
-
-  rm -f "$_brh_rng" "$_brh_tiles"
-  return $_brh_rc
+  cat <<HTML
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>claude-bisio · Hall of Fame</title>
+<style>
+  :root { --bg:#0d0d0d; --fg:#d4d4d4; --acc:#ffd700; --dim:#888; --line:#333; --card:#161616; --good:#7cc97c; --warn:#e0c068; --bad:#e57c7c; }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--fg); font-family: "SF Mono","Cascadia Mono",Menlo,Consolas,monospace; margin: 0 auto; padding: 2rem; max-width: 1100px; }
+  h1, h2, h3 { color: var(--acc); margin: 0 0 .5rem; }
+  h1 { font-size: 1.6rem; letter-spacing: .04em; }
+  h2 { font-size: 1.05rem; margin: 0 0 .75rem; letter-spacing: .03em; }
+  header { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 1rem; margin-bottom: 1.5rem; }
+  header .meta { color: var(--dim); font-size: .9rem; }
+  header .repo-link { color: var(--acc); text-decoration: none; font-size: .85rem; white-space: nowrap; }
+  header .repo-link:hover { text-decoration: underline; }
+  .stats-card { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 1.25rem 1.5rem; margin-bottom: 2rem; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.1rem 1.5rem; }
+  .stat { min-width: 0; font-size: 1rem; line-height: 1.35; }
+  .stat-label { display: block; color: var(--dim); font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; margin-bottom: .15rem; }
+  .stat b { color: var(--acc); font-weight: 600; }
+  section.panel { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+  section.panel ol, section.panel ul { margin: 0; padding-left: 1.25rem; }
+  section.panel li { margin: .15rem 0; }
+  section.panel li b { color: var(--acc); }
+  .table-wrap { overflow-x: auto; }
+  table.dex { width: 100%; border-collapse: collapse; font-size: .92rem; }
+  table.dex th, table.dex td { padding: .4rem 1rem; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  table.dex th:first-child, table.dex td:first-child { padding-left: 0; }
+  table.dex th:last-child, table.dex td:last-child { padding-right: 0; }
+  table.dex th { color: var(--acc); font-weight: 600; }
+  table.dex tbody tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+  table.dex th.num, table.dex td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .delta-good { color: var(--good); }
+  .delta-warn { color: var(--warn); }
+  .delta-bad  { color: var(--bad); }
+  .panels-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  @media (max-width: 700px) { .panels-2col { grid-template-columns: 1fr; } }
+  .panels-2col > section.panel { margin-bottom: 0; }
+  .table-scroll { max-height: 200px; overflow-y: auto; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }
+  @media (max-width: 800px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 500px) { .grid { grid-template-columns: 1fr; } }
+  .tile { display: flex; flex-direction: column; align-items: center; border: 1px solid var(--line); padding: .8rem; text-align: center; transition: border-color .15s; }
+  .tile:hover { border-color: var(--acc); }
+  .tile img { max-width: 100%; max-height: 280px; width: auto; height: auto; object-fit: contain; margin: 0 auto; image-rendering: pixelated; }
+  .tile h3 { font-size: 1rem; margin-top: auto; padding-top: .5rem; }
+  .tile-footer { display: flex; justify-content: space-between; align-items: baseline; width: 100%; padding-top: .5rem; font-size: .9rem; }
+  .tile-pulls { color: var(--dim); }
+  .tile-pulls b { color: var(--fg); font-weight: 600; }
+  .tile-rarity { font-weight: 600; letter-spacing: .04em; text-transform: uppercase; font-size: .8rem; }
+  .rarity-legendary { color: #D97757; }
+  .rarity-rare      { color: #c060e0; }
+  .rarity-uncommon  { color: #6cb0ff; }
+  .rarity-common    { color: #888; }
+  footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--dim); font-size: .85rem; }
+  footer a { color: var(--acc); text-decoration: none; }
+</style>
+</head><body>
+<header><div class="header-title"><h1>✦ Hall of Fame ✦</h1><div class="meta">${_brh_name_esc} · ${_brh_date}</div></div><a class="repo-link" href="https://github.com/Evobaso-J/claude-bisio">github.com/Evobaso-J/claude-bisio</a></header>
+<div class="stats-card">
+<section class="stats">
+<div class="stat"><span class="stat-label">Total pulls:</span> <b>${_brh_total}</b></div>
+<div class="stat"><span class="stat-label">Completion time:</span> <b>${_brh_completion_time}</b></div>
+<div class="stat"><span class="stat-label">Final catch:</span> <b>${_brh_slug}</b> (pull #${_brh_pull})</div>
+<div class="stat"><span class="stat-label">Most pulled:</span> ${_most_value}</div>
+<div class="stat"><span class="stat-label">First variant seen:</span> ${_first_random_value}</div>
+<div class="stat"><span class="stat-label">Longest streak of main bisio:</span> <b>${_brh_main_streak} pulls</b></div>
+<div class="stat"><span class="stat-label">Longest non-main streak:</span> <b>${_brh_nonmain_streak} pulls</b></div>
+<div class="stat"><span class="stat-label">Longest dup streak:</span> ${_dup_value}</div>
+<div class="stat"><span class="stat-label">Longest all-different streak:</span> ${_diff_value}</div>
+<div class="stat"><span class="stat-label">Missed (tiny terminal):</span> <b>${_missed}</b></div>
+</section>
+</div>
+<section class="panel"><h2>RNG sanity</h2><div class="table-wrap table-scroll">
+<table class="dex"><thead><tr><th>Variant</th><th class="num">Actual %</th><th class="num">Expected %</th><th class="num">Δ</th></tr></thead><tbody>
+${_brh_rng}
+</tbody></table></div></section>
+<section class="grid">
+${_brh_tiles}
+</section>
+</body></html>
+HTML
 }
 
 # Static celebration line + OSC 8 hyperlink, both on the same row.
