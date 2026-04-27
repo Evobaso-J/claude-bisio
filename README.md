@@ -4,7 +4,7 @@ Claudio Bisio greets you every time you run `claude`! 👋
 
 A zsh wrapper that prints a Claudio Bisio banner before launching the [Claude Code](https://claude.com/claude-code) CLI. Falls back to a static ASCII portrait if `chafa` isn't installed.
 
-Ships with the [claudiosay](#claudiosay) utility that pipes messages through Bisio's mouth.
+Ships with the [claudiosay](#-claudiosay) utility that pipes messages through Bisio's mouth.
 
 <img src="assets/bisio-preview.gif" alt="claude-bisio banner preview" width="800">
 
