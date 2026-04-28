@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/Evobaso-J/claude-bisio/compare/v1.0.0...v1.1.0) (2026-04-28)
+
+
+### Features
+
+* notify on new release and offer inline update ([#10](https://github.com/Evobaso-J/claude-bisio/issues/10)) ([306d06f](https://github.com/Evobaso-J/claude-bisio/commit/306d06f94212972c58e09d99b0df34d7e7e0e4cb))
+
 ## [1.0.0](https://github.com/Evobaso-J/claude-bisio/compare/v0.1.0...v1.0.0) (2026-04-27)
 
 ### Features
