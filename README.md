@@ -29,13 +29,21 @@ Supported: macOS (Homebrew), Linux (`apt-get` / `dnf` / `pacman` / `zypper` / `a
 
 ### 🔄 Update
 
-Fast-forward pull on the existing clone:
+The plugin checks GitHub once per day for a new release. When one exists, the next bare `claude` launch prints a `y/N` prompt right after the banner; answering `y` runs `update.sh` inline and then starts Claude Code on the new version. Answering `N` (or just pressing Enter) suppresses the prompt for that release — you'll see it again only when an even newer release ships. The check runs in the background and never blocks startup.
+
+To update on demand instead of waiting for the prompt:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Evobaso-J/claude-bisio/main/update.sh | sh
 ```
 
 Or directly: `~/.claude-bisio/update.sh` (equivalently `git -C ~/.claude-bisio pull`).
+
+To turn the auto-check off:
+
+```sh
+export CLAUDE_BISIO_CHECK_UPDATES=0   # in ~/.zshrc, before the plugin source line
+```
 
 ## ▶️ Usage
 

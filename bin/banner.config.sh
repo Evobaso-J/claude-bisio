@@ -47,6 +47,10 @@
 : "${CLAUDE_BISIO_DEX_FILLED=▰}"                        # filled segment glyph
 : "${CLAUDE_BISIO_DEX_EMPTY=▱}"                         # empty segment glyph
 
+# Update-notification check. Set to "0" to disable the once-per-day background
+# `git ls-remote` and the y/N prompt that follows when a newer release exists.
+: "${CLAUDE_BISIO_CHECK_UPDATES=1}"
+
 # Pull rates for each portrait in assets/bisio/. Plain assignment: these are
 # repo-level constants, not env-overridable. Edit here to retune. Numbers are
 # relative weights (any positive integers); they don't need to sum to 100 but 
