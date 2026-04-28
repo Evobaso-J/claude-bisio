@@ -110,6 +110,7 @@ If two formats fit, prefer `.jsonl`; agents handle line-delimited records more r
 | "what is the dex / hall of fame" | `context/domain/DOMAIN.md` § Entities → `BISIO_COUNTER_SPEC.md` / `BISIO_HOF_SPEC.md` for locked decisions |
 | "why no SessionStart hook" | `context/debugging/DEBUGGING.md` § Common Topics → ADRs `a001` / `a008` + gotchas `g001`–`g011` (do not retry that path) |
 | "test the counter" | `tests/counter.bats` (bats) — see `context/patterns/PATTERNS.md` § Testing for isolation conventions |
+| "auto-update / new-release prompt / version check" | `bin/_update_check.sh` (24h `git ls-remote` cache, dismiss-per-version, sourced by `claude-bisio.plugin.zsh`); tests in `tests/update_check.bats`; opt-out via `CLAUDE_BISIO_CHECK_UPDATES=0` |
 | "release / publish" | `context/operations/OPERATIONS.md` § Deploy — distribution is the `main` branch tip |
 
 ## Context Structure
