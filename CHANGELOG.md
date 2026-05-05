@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/Evobaso-J/claude-bisio/compare/v1.1.0...v1.1.1) (2026-05-05)
+
+
+### Bug Fixes
+
+* trim transparent padding from oversized bisio variants ([#12](https://github.com/Evobaso-J/claude-bisio/issues/12)) ([ee83111](https://github.com/Evobaso-J/claude-bisio/commit/ee8311196a40846963a1331163f3bab185a1008d))
+
 ## [1.1.0](https://github.com/Evobaso-J/claude-bisio/compare/v1.0.0...v1.1.0) (2026-04-28)
 
 
