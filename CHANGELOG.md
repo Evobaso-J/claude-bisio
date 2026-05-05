@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/Evobaso-J/claude-bisio/compare/v1.1.1...v1.2.0) (2026-05-05)
+
+
+### Features
+
+* enforce no horizontal alpha padding on bisio variants ([#14](https://github.com/Evobaso-J/claude-bisio/issues/14)) ([ccbadf4](https://github.com/Evobaso-J/claude-bisio/commit/ccbadf4fd72dfb6624b472ffdc54db822d03c69e))
+
 ## [1.1.1](https://github.com/Evobaso-J/claude-bisio/compare/v1.1.0...v1.1.1) (2026-05-05)
 
 
