@@ -21,7 +21,11 @@ The runtime "variant" axis is the portrait set, not deployment targets. Canonica
 
 Adding a variant: drop `assets/bisio/NN-newslug.png` and add `BISIO_WEIGHT_NEWSLUG=<n>` in `bin/banner.config.sh`. Picker is variant-agnostic; counter rebuilds the canonical set on every `bisio_record_pull` call.
 
-**Aspect contract.** PNGs in `assets/bisio/` must satisfy `height ≥ width` (portrait or square). The side-mode banner layout in `bin/banner.sh` reserves rows from `pw` assuming a portrait aspect; wider PNGs cause title text to render below the image instead of beside it. Pad wide source art with transparent rows top/bottom (e.g. `sips -p H W in.png --out out.png`) before committing. Enforced by `tests/bisio_assets.bats`.
+**Aspect contract.** PNGs in `assets/bisio/` must satisfy `height ≥ width` (portrait or square). The side-mode banner layout in `bin/banner.sh` reserves rows from `pw` assuming a portrait aspect; wider PNGs cause title text to render below the image instead of beside it.
+
+**Tightness contract.** No transparent left/right padding allowed — chafa fits the whole canvas into the cell box, so horizontal pad shrinks the visible figure (regression that shipped in v1.1.0 and was fixed in v1.1.1). Vertical pad to square is fine and is the canonical way to bring landscape source art into the aspect contract.
+
+Run `bin/trim-bisios.sh assets/bisio/NN-newslug.png` after dropping a new PNG; it trims the alpha bbox then pads to square. Idempotent. Requires ImageMagick. Both contracts enforced by `tests/bisio_assets.bats`.
 
 ## Configuration System
 
