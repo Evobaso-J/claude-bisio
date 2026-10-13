@@ -30,10 +30,15 @@ main 14
 allucinato 13
 photo 12
 presentabisio 11
+pensierisio 10
+ridisio 9
 hair 7
 joestar 6
 shrek 5
+acchiappisio 5
 palloncisio 4
+pomodorisio 3
+solisio 3
 rapput 3
 notbisio 2
 pate 1
@@ -46,15 +51,15 @@ __first_random_slug allucinato
 __first_random_pull_n 2
 COUNTS
 
-dex='01:main|02:allucinato|03:rapput|04:pate|05:duxio|06:hair|07:notbisio|08:photo|09:presentabisio|10:joestar|11:shrek|12:palloncisio'
+dex='01:main|02:allucinato|03:rapput|04:pate|05:duxio|06:hair|07:notbisio|08:photo|09:presentabisio|10:joestar|11:shrek|12:palloncisio|13:pomodorisio|14:acchiappisio|15:solisio|16:pensierisio|17:ridisio'
 out="$repo_dir/assets/hof-demo.html"
 
 _bisio_render_html \
   "Demo Bisio" \
   "$(date -u +%Y-%m-%d)" \
-  79 \
+  109 \
   duxio \
-  79 \
+  109 \
   5 \
   4 \
   "$dex" \
