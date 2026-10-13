@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/Evobaso-J/claude-bisio/compare/v1.2.0...v1.3.0) (2026-10-13)
+
+
+### Features
+
+* add pomodorisio, acchiappisio, solisio, pensierisio, ridisio variants ([#16](https://github.com/Evobaso-J/claude-bisio/issues/16)) ([9017f15](https://github.com/Evobaso-J/claude-bisio/commit/9017f15fdd2c49566ffe5579d111c974f11144e0))
+
 ## [1.2.0](https://github.com/Evobaso-J/claude-bisio/compare/v1.1.1...v1.2.0) (2026-05-05)
 
 
