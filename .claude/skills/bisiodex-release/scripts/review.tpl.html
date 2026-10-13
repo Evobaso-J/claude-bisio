@@ -1,0 +1,139 @@
+<title>Nuovi Bisio</title>
+<style>
+/* Layout: mirrors the real Hall of Fame (bin/_counter.sh) — dark single theme, mono, gold accents — so each card previews its tile. */
+:root {
+  --bg: #0d0d0d; --fg: #d4d4d4; --acc: #ffd700; --dim: #888; --line: #333; --card: #161616;
+  --good: #7cc97c; --good-soft: #1b2a1b; --bad: #e57c7c;
+  --mono: "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font-family: var(--mono); font-size: 14px; line-height: 1.5; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 32px 16px 64px; display: grid; gap: 24px; }
+header { display: grid; gap: 8px; border-bottom: 1px solid var(--line); padding-bottom: 16px; }
+h1 { color: var(--acc); font-size: clamp(22px, 4vw, 30px); margin: 0; text-wrap: balance; }
+.lede { color: var(--dim); margin: 0; max-width: 70ch; }
+.lede code { color: var(--fg); }
+.bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; font-size: 12px; color: var(--dim); }
+.count { color: var(--acc); font-weight: 600; }
+.status { padding: 2px 8px; border: 1px solid var(--line); border-radius: 99px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.tile { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; border: 1px solid var(--line); padding: 12px; transition: border-color .15s; align-content: start; }
+.tile:hover { border-color: var(--acc); }
+.tile.on { border-color: var(--good); box-shadow: 0 0 0 1px var(--good); }
+.shot { height: 280px; display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; min-width: 0; }
+.shot img { max-width: 100%; max-height: 280px; object-fit: contain; image-rendering: pixelated; }
+h3 { color: var(--acc); margin: 0; text-align: center; font-size: 15px; overflow-wrap: anywhere; }
+label.name { display: grid; gap: 4px; font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: .06em; }
+.slug { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 4px; background: var(--card); font-size: 14px; text-transform: none; letter-spacing: 0; }
+.slug span { padding: 0 8px; color: var(--dim); }
+.slug input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--fg); font: inherit; padding: 7px 0; }
+.slug:focus-within { border-color: var(--acc); }
+.slug input:focus { outline: none; }
+.note { margin: 0; font-size: 12px; color: var(--dim); }
+.note.warn { color: #e0c068; }
+.approve { display: flex; gap: 8px; align-items: center; font-weight: 600; cursor: pointer; padding: 8px 10px; border-radius: 4px; background: var(--card); }
+.tile.on .approve { background: var(--good-soft); color: var(--good); }
+.approve input { width: 18px; height: 18px; accent-color: var(--good); }
+.err { color: var(--bad); font-size: 12px; margin: 0; }
+:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .tile { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Nuovi Bisio avvistati</h1>
+    <p class="lede">Ogni card è già scontornata e normalizzata come finirebbe in <code>assets/bisio/</code>, su sfondo e stile della Hall of Fame. Spunta quelli da aggiungere e correggi il nome: diventa lo slug del file. Il numero di dex viene assegnato in ordine tra gli approvati.</p>
+    <div class="bar"><span class="count" id="count">0 approvati</span><span class="status" id="status">Connessione…</span></div>
+  </header>
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const ITEMS = __DATA__;
+const FIRST_DEX = __FIRST_DEX__;
+const state = Object.fromEntries(ITEMS.map(i => [i.id, { name: i.name, approved: false }]));
+const grid = document.getElementById("grid");
+const statusEl = document.getElementById("status");
+let db = null;
+const timers = {};
+const titles = {};
+
+function slugify(v) { return v.toLowerCase().replace(/[^a-z]/g, ""); }
+
+function refreshTitles() {
+  let n = FIRST_DEX;
+  for (const it of ITEMS) {
+    const s = state[it.id];
+    titles[it.id].textContent = (s.approved ? "#" + n++ : "#??") + " " + (s.name || "senza-nome");
+  }
+  const c = Object.values(state).filter(s => s.approved).length;
+  document.getElementById("count").textContent = c + (c === 1 ? " approvato" : " approvati");
+}
+
+function render() {
+  grid.textContent = "";
+  for (const it of ITEMS) {
+    const s = state[it.id];
+    const tile = document.createElement("article");
+    tile.className = "tile" + (s.approved ? " on" : "");
+    tile.innerHTML = `
+      <div class="shot"><img alt=""></div>
+      <h3></h3>
+      <label class="name">Nome
+        <span class="slug"><span>NN-</span><input id="name-${it.id}" autocomplete="off" spellcheck="false"><span>.png</span></span>
+      </label>
+      <p class="note"></p>
+      <label class="approve"><input type="checkbox" id="ok-${it.id}"> Approvato</label>
+      <p class="err" hidden></p>`;
+    tile.querySelector("img").src = it.src;
+    tile.querySelector("img").alt = "Candidato " + it.id;
+    titles[it.id] = tile.querySelector("h3");
+    const note = tile.querySelector(".note");
+    note.textContent = it.note;
+    if (it.warn) note.classList.add("warn");
+    const name = tile.querySelector("input[id^=name]");
+    const ok = tile.querySelector("input[type=checkbox]");
+    name.value = s.name; ok.checked = s.approved;
+    name.addEventListener("input", () => {
+      const v = slugify(name.value);
+      if (v !== name.value) name.value = v;
+      s.name = v; refreshTitles(); clearTimeout(timers[it.id]);
+      timers[it.id] = setTimeout(() => save(it.id, tile), 600);
+    });
+    ok.addEventListener("change", () => {
+      s.approved = ok.checked; tile.classList.toggle("on", ok.checked); refreshTitles(); save(it.id, tile);
+    });
+    grid.append(tile);
+  }
+  refreshTitles();
+}
+
+async function save(id, tile) {
+  const err = tile.querySelector(".err");
+  if (!db) { err.hidden = false; err.textContent = "Non salvato: apri la pagina da claude.ai con il tuo account."; return; }
+  try {
+    await db.doc("picks/" + id).set({ name: state[id].name, approved: state[id].approved });
+    err.hidden = true; statusEl.textContent = "Salvato";
+  } catch (e) {
+    err.hidden = false; err.textContent = "Non salvato (" + (e.code || "errore") + "). Riprova a spuntare.";
+  }
+}
+
+render();
+
+(async () => {
+  db = window.claude ? await window.claude.use("db") : null;
+  if (!db) { statusEl.textContent = "Sola lettura: le scelte non vengono salvate"; return; }
+  statusEl.textContent = "Le scelte si salvano da sole";
+  db.collection("picks").onSnapshot(snap => {
+    let changed = false;
+    for (const d of snap.docs) {
+      const v = d.data(); if (!state[d.id] || !v) continue;
+      const active = document.activeElement && document.activeElement.id === "name-" + d.id;
+      if (!active && v.name && v.name !== state[d.id].name) { state[d.id].name = v.name; changed = true; }
+      if (typeof v.approved === "boolean" && v.approved !== state[d.id].approved) { state[d.id].approved = v.approved; changed = true; }
+    }
+    if (changed) render();
+  }, e => { statusEl.textContent = "Sync interrotto (" + (e.code || "errore") + ")"; });
+})();
+</script>

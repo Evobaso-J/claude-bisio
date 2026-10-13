@@ -104,7 +104,7 @@ If two formats fit, prefer `.jsonl`; agents handle line-delimited records more r
 <!-- exodia:section:quick-actions -->
 | Developer says | Action sequence |
 | -------------- | --------------- |
-| "add a variant" | `context/operations/OPERATIONS.md` § Variants → `bin/banner.config.sh` (weight) + `assets/bisio/NN-slug.png` |
+| "add a variant" | `context/operations/OPERATIONS.md` § Variants → `bin/banner.config.sh` (weight) + `assets/bisio/NN-slug.png`. Full hunt → cutout → approval → release flow: `/bisiodex-release` (`.claude/skills/bisiodex-release/SKILL.md`) |
 | "banner doesn't render" | `context/debugging/DEBUGGING.md` § Common Topics |
 | "tweak chafa flags" | `context/operations/OPERATIONS.md` § Configuration → `bin/banner.config.sh` |
 | "what is the dex / hall of fame" | `context/domain/DOMAIN.md` § Entities → `BISIO_COUNTER_SPEC.md` / `BISIO_HOF_SPEC.md` for locked decisions |

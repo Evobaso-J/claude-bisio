@@ -41,7 +41,7 @@ Knobs: `CHAFA_*` (render flags), `CLAUDE_BISIO_RESERVE` / `CLAUDE_BISIO_MAX_HEIG
 
 <!-- exodia:section:deploy -->
 - **CI**: `.github/workflows/test.yml` — runs on `push` to `main` and on `pull_request`. Steps: install bats + shellcheck via apt, run shellcheck (errors-only sweep on `bin/*.sh` + strict on `bin/_counter.sh`), run `bats tests/`.
-- **Release**: no automated release pipeline. Distribution is via the `main` branch tip — `install.sh` clones with `--branch main --depth 1`, `update.sh` does `git merge --ff-only origin/main`. Version overrides via `CLAUDE_BISIO_REF`.
+- **Release**: release-please (`.github/workflows/release-please.yml`) opens a release PR from conventional commits on `main` (`feat:` = minor); merging it tags `vX.Y.Z`, which `bin/_update_check.sh` polls. Install and update still track the `main` branch tip — `install.sh` clones with `--branch main --depth 1`, `update.sh` does `git merge --ff-only origin/main`. Version overrides via `CLAUDE_BISIO_REF`.
 - **User install**: `curl … install.sh | sh` or git clone + `install.sh`. Plugin-manager users (zinit / antigen / zplug / sheldon / oh-my-zsh) skip `install.sh` for the source-line wiring but still need `chafa` separately.
 
 ## Localization / i18n (if applicable)
