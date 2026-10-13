@@ -100,12 +100,12 @@ read_count() {
   for s in main allucinato rapput patema; do
     bisio_record_pull "$s" 30 80 >/dev/null
   done
-  _mtime_before=$(stat -f %m "$(hof_file)" 2>/dev/null || stat -c %Y "$(hof_file)")
+  _mtime_before=$(stat -c %Y "$(hof_file)" 2>/dev/null || stat -f %m "$(hof_file)")
   sleep 1
   run bisio_record_pull "main" 30 80
   [ "$status" -eq 0 ]
   [ -z "$output" ]
-  _mtime_after=$(stat -f %m "$(hof_file)" 2>/dev/null || stat -c %Y "$(hof_file)")
+  _mtime_after=$(stat -c %Y "$(hof_file)" 2>/dev/null || stat -f %m "$(hof_file)")
   [ "$_mtime_before" = "$_mtime_after" ]
 }
 
