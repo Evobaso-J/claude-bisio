@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.4.0](https://github.com/Evobaso-J/claude-bisio/compare/v1.3.0...v1.4.0) (2026-10-19)
+
+
+### Features
+
+* add bisio chafa preview and live tuning tools ([#20](https://github.com/Evobaso-J/claude-bisio/issues/20)) ([b49f81a](https://github.com/Evobaso-J/claude-bisio/commit/b49f81a91f410beadce7e0931faaddb3ec3f407b))
+
+
+### Bug Fixes
+
+* tune terminal rendering of 10 bisio variants ([#22](https://github.com/Evobaso-J/claude-bisio/issues/22)) ([3075df8](https://github.com/Evobaso-J/claude-bisio/commit/3075df8c06e63f40199361f00fe368676f291dfe))
+
 ## [1.3.0](https://github.com/Evobaso-J/claude-bisio/compare/v1.2.0...v1.3.0) (2026-10-13)
 
 
