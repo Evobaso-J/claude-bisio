@@ -106,6 +106,7 @@ If two formats fit, prefer `.jsonl`; agents handle line-delimited records more r
 | -------------- | --------------- |
 | "add a variant" | `context/operations/OPERATIONS.md` § Variants → `bin/banner.config.sh` (weight) + `assets/bisio/NN-slug.png`. Full hunt → cutout → approval → release flow: `/bisiodex-release` (`.claude/skills/bisiodex-release/SKILL.md`) |
 | "banner doesn't render" | `context/debugging/DEBUGGING.md` § Common Topics |
+| "tune / fix a bisio" | `bin/tune-bisio.sh NN-slug.png` (live chafa tuner, recipes in `assets/bisio/recipes.tsv`, originals in `assets/bisio/src/`) → `bin/preview-bisio.sh` for the before/after sheet; see `context/operations/OPERATIONS.md` § Variants |
 | "tweak chafa flags" | `context/operations/OPERATIONS.md` § Configuration → `bin/banner.config.sh` |
 | "what is the dex / hall of fame" | `context/domain/DOMAIN.md` § Entities → `BISIO_COUNTER_SPEC.md` / `BISIO_HOF_SPEC.md` for locked decisions |
 | "why no SessionStart hook" | `context/debugging/DEBUGGING.md` § Common Topics → ADRs `a001` / `a008` + gotchas `g001`–`g011` (do not retry that path) |

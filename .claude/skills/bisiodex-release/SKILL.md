@@ -50,7 +50,7 @@ Done when: every candidate has a `norm.png` that `trim-bisios.sh` reports as con
 
 ## 4. Review gate: approval and names
 
-Write `$SCRATCH/candidates.json` with id, proposed slug, note, warn and png for each candidate. The slug is lowercase letters only and puns on Bisio (`pomodorisio`, `solisio`), and it must describe what is left after the cutout. Build the page with `python3 -I $SKILL/scripts/build_review.py candidates.json <next dex number> review.html`.
+Write `$SCRATCH/candidates.json` with id, proposed slug, note, warn and png for each candidate. The slug is lowercase letters only and puns on Bisio (`pomodorisio`, `solisio`), and it must describe what is left after the cutout. Build the page with `python3 -I $SKILL/scripts/build_review.py candidates.json <next dex number> review.html`. Each card shows the cutout next to its chafa render with the banner preset (`bin/preview-bisio.sh --chafa`), so the user judges what the terminal will actually show. Flag in the note any candidate whose render loses the face.
 
 Publish it as an Artifact with `capabilities: {db: {}, user: {}}`. The page saves each choice to the `picks` collection as `{name, approved}`. Users cannot look at local files, so always send candidates through the page. Read the choices back with `ArtifactData` `list` on `picks`.
 
@@ -82,9 +82,19 @@ In the worktree:
 1. Copy each PNG to `assets/bisio/NN-slug.png` (`magick f -strip PNG32:f`).
 2. Add `BISIO_WEIGHT_<SLUG>` next to its tier in `bin/banner.config.sh`.
 3. Extend the mock state in `bin/demo-hof.sh`, following the existing pattern.
-4. Run `bats tests/ > out; echo EXIT=$?` and `shellcheck --severity=error bin/*.sh`.
+4. **Tuning gate.** Ask the user which Bisios to tune, new or already shipped (fixing existing ones is in scope). For each, open `bin/tune-bisio.sh NN-slug.png` in a new iTerm window, since the tuner is an interactive TUI the agent cannot drive:
+```sh
+osascript <<'E'
+tell application "iTerm2"
+  activate
+  create window with default profile command "/bin/zsh -lc 'cd <worktree> && bin/tune-bisio.sh NN-slug.png; exec zsh -l'"
+end tell
+E
+```
+   The user saves with `w`. Then build the before/after sheet with `bin/preview-bisio.sh $SCRATCH/tuned.png assets/bisio/src/NN-slug.png assets/bisio/NN-slug.png` and show it. Skip when the user wants no tuning.
+5. Run `bats tests/ > out; echo EXIT=$?` and `shellcheck --severity=error bin/*.sh`.
 
-Done when: both checks exit 0, and `git status` shows only the new PNGs, `banner.config.sh` and `demo-hof.sh`.
+Done when: both checks exit 0, and `git status` shows only the new PNGs, `banner.config.sh`, `demo-hof.sh` and, if anything was tuned, the tuned PNGs, `assets/bisio/src/` and `assets/bisio/recipes.tsv`.
 
 ## 8. PR
 

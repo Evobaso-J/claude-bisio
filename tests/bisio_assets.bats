@@ -46,3 +46,18 @@
     fi
   done
 }
+
+# Recipe contract: bin/tune-bisio.sh regenerates each tuned asset from
+# assets/bisio/src/<file> using its row in recipes.tsv, so every row must
+# point at an existing original + asset and carry 8 integer params.
+@test "every tune recipe has its original and asset" {
+  recipes="$BATS_TEST_DIRNAME/../assets/bisio/recipes.tsv"
+  [ -f "$recipes" ] || skip "no recipes"
+  while IFS='	' read -r file rest; do
+    case $file in ''|'#'*) continue ;; esac
+    [ -f "$BATS_TEST_DIRNAME/../assets/bisio/src/$file" ] || { echo "$file: missing src/$file"; return 1; }
+    [ -f "$BATS_TEST_DIRNAME/../assets/bisio/$file" ] || { echo "$file: missing asset"; return 1; }
+    printf '%s\n' "$rest" | awk -F'\t' 'NF != 8 { exit 1 } { for (i = 1; i <= 8; i++) if ($i !~ /^-?[0-9]+$/) exit 1 }' \
+      || { echo "$file: expected 8 integer params, got '$rest'"; return 1; }
+  done < "$recipes"
+}
