@@ -27,6 +27,10 @@ Adding a variant: drop `assets/bisio/NN-newslug.png` and add `BISIO_WEIGHT_NEWSL
 
 Run `bin/trim-bisios.sh assets/bisio/NN-newslug.png` after dropping a new PNG; it trims the alpha bbox then pads to square. Idempotent. Requires ImageMagick. Both contracts enforced by `tests/bisio_assets.bats`.
 
+To judge candidates before committing, `bin/preview-bisio.sh OUT.png IN.png...` builds a sheet with each source next to its chafa render (`--chafa OUT.png IN.png` writes the render alone; the bisiodex-release review page uses it), using the banner's flags from `bin/banner.config.sh` (`PREVIEW_SIZE` sets the cell grid). Requires chafa, ImageMagick and python3.
+
+**Tuning a variant** (new or existing): `bin/tune-bisio.sh NN-slug.png` re-renders the variant live in the terminal with the banner's chafa preset while keys adjust brightness/saturation/contrast/gamma/sharpen/zoom/pan; `w` saves. Saving stores the untouched original in `assets/bisio/src/` and one row in `assets/bisio/recipes.tsv`, then regenerates the asset from original + recipe (trim contracts re-applied). Saving a neutral recipe restores the original and drops both. `bin/tune-bisio.sh --apply` regenerates every tuned asset from its recipe. The chafa flag list is shared via `bin/_chafa_args.sh` (banner, preview, tuner).
+
 ## Configuration System
 
 <!-- exodia:section:config -->
