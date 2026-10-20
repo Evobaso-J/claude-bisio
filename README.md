@@ -29,7 +29,7 @@ Supported: macOS (Homebrew), Linux (`apt-get` / `dnf` / `pacman` / `zypper` / `a
 
 ### 🔄 Update
 
-The plugin checks GitHub once per day for a new release. When one exists, the next bare `claude` launch prints a `y/N` prompt right after the banner; answering `y` runs `update.sh` inline and then starts Claude Code on the new version. Answering `N` (or just pressing Enter) suppresses the prompt for that release — you'll see it again only when an even newer release ships. The check runs in the background and never blocks startup.
+The plugin checks GitHub once per day for a new release. When one exists, the next bare `claude` launch prints a `Y/n` prompt right after the banner; pressing Enter (or answering `y`) runs `update.sh` inline and then starts Claude Code on the new version. Answering `n` suppresses the prompt for that release — you'll see it again only when an even newer release ships. The check runs in the background and never blocks startup.
 
 To update on demand instead of waiting for the prompt:
 

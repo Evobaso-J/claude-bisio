@@ -9,13 +9,13 @@
 # State (under ${XDG_STATE_HOME:-$HOME/.local/state}/claude-bisio/):
 #   last-update-check   sentinel; mtime is the TTL marker
 #   latest-version      cached remote latest tag (version string, no leading v)
-#   dismissed-version   version the user said N to (suppresses re-prompt
+#   dismissed-version   version the user said n to (suppresses re-prompt
 #                       until a newer release supersedes it)
 #
 # Public functions:
 #   bisio_update_check        top-level entry: spawn async fetch + sync prompt
 #   bisio_update_fetch        sync fetcher (also called via async wrapper)
-#   bisio_update_prompt       sync prompt; runs update.sh on y, dismisses on n
+#   bisio_update_prompt       sync prompt; runs update.sh by default, dismisses on n
 #
 # Config:
 #   CLAUDE_BISIO_CHECK_UPDATES   1 = enabled (default), 0 = disabled
@@ -95,11 +95,16 @@ bisio_update_prompt() {
     [ "$_bup_dv" = "$_bup_remote" ] && return 0
   fi
 
-  printf '\n📦 v%s → v%s available. Update now? [y/N] ' "$_bup_local" "$_bup_remote"
-  read -r _bup_ans || _bup_ans=""
+  printf '\n📦 v%s → v%s available. Update now? [Y/n] ' "$_bup_local" "$_bup_remote"
+  # EOF (no one answered): skip without dismissing.
+  read -r _bup_ans || return 0
 
   case "$_bup_ans" in
-    y|Y|yes|YES)
+    n|N|no|NO|No)
+      mkdir -p "$_bup_state" 2>/dev/null
+      printf '%s\n' "$_bup_remote" > "$_bup_dismissed" 2>/dev/null
+      ;;
+    *)
       _bup_updater="${CLAUDE_BISIO_DIR:-}/update.sh"
       if [ -x "$_bup_updater" ]; then
         if ! "$_bup_updater"; then
@@ -108,10 +113,6 @@ bisio_update_prompt() {
       else
         printf '[claude-bisio] update.sh not found at %s\n' "$_bup_updater" >&2
       fi
-      ;;
-    *)
-      mkdir -p "$_bup_state" 2>/dev/null
-      printf '%s\n' "$_bup_remote" > "$_bup_dismissed" 2>/dev/null
       ;;
   esac
 
