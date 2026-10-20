@@ -22,8 +22,19 @@ die()  { warn "$*"; exit 1; }
 [ -d "$TARGET_DIR/.git" ] || die "no clone at $TARGET_DIR. Run install.sh first."
 command -v git >/dev/null 2>&1 || die "git not found. Install git, then re-run."
 
+# A stalled connection to GitHub otherwise hangs silently (~75s on macOS)
+# and looks frozen. perl's alarm survives exec, so it bounds git itself.
+with_timeout() {
+  if command -v perl >/dev/null 2>&1; then
+    perl -e 'alarm shift; exec @ARGV' "$@"
+  else
+    shift; "$@"
+  fi
+}
+
 log "fetching origin"
-git -C "$TARGET_DIR" fetch --quiet origin "$REPO_REF"
+with_timeout 20 git -C "$TARGET_DIR" fetch --quiet origin "$REPO_REF" \
+  || die "fetch failed or timed out after 20s. Check your connection and retry."
 
 before=$(git -C "$TARGET_DIR" rev-parse HEAD)
 log "fast-forwarding $REPO_REF"
