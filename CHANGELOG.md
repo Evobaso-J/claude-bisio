@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/Evobaso-J/claude-bisio/compare/v1.4.0...v1.4.1) (2026-10-20)
+
+
+### Bug Fixes
+
+* update prompt defaults to yes, fetch can't hang ([#23](https://github.com/Evobaso-J/claude-bisio/issues/23)) ([a9e7124](https://github.com/Evobaso-J/claude-bisio/commit/a9e712481efba57b798d304ce9f9224770771170))
+
 ## [1.4.0](https://github.com/Evobaso-J/claude-bisio/compare/v1.3.0...v1.4.0) (2026-10-19)
 
 
