@@ -129,12 +129,21 @@ ddd refs/tags/v1.2.0'
   ! grep -q "STUB_UPDATE_RAN" "$STUB_LOG"
 }
 
-@test "prompt empty answer (just Enter) treated as N" {
+@test "prompt empty answer (just Enter) treated as Y" {
   mkdir -p "$(state_dir)"
   printf '1.1.0\n' > "$(cache_file)"
   out=$(printf '\n' | bisio_update_prompt 2>&1)
-  [ "$(cat "$(dismissed_file)")" = "1.1.0" ]
+  [[ "$out" == *"[Y/n]"* ]]
+  grep -q "STUB_UPDATE_RAN" "$STUB_LOG"
+  [ ! -f "$(dismissed_file)" ]
+}
+
+@test "prompt EOF (no answer) neither updates nor dismisses" {
+  mkdir -p "$(state_dir)"
+  printf '1.1.0\n' > "$(cache_file)"
+  out=$(bisio_update_prompt 2>&1 </dev/null)
   ! grep -q "STUB_UPDATE_RAN" "$STUB_LOG"
+  [ ! -f "$(dismissed_file)" ]
 }
 
 @test "prompt Y runs update.sh and does not write dismissed" {
